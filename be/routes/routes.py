@@ -1,12 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from database import get_session
 from models import Room, RoomUser
 from schemas import RoomCreate, RoomResponse, RoomJoinRequest
-from dependencies import join_room_dependency
+from dependencies import create_room_dependency, join_room_dependency
 
 
 router = APIRouter()
@@ -14,20 +11,11 @@ router = APIRouter()
 
 @router.post("/rooms/", response_model=RoomResponse)
 async def create_room(
-    room_data: RoomCreate, session: AsyncSession = Depends(get_session)
+    room_data: RoomCreate,  # pylint: disable=unused-argument
+    room: Room = Depends(create_room_dependency),
 ):
     """Create a new room with the provided name and user ID."""
-    new_room = Room(name=room_data.name, created_by=room_data.user_id)
-    try:
-        session.add(new_room)
-        await session.commit()
-        await session.refresh(new_room)
-        return new_room
-    except IntegrityError as exc:
-        await session.rollback()
-        raise HTTPException(
-            status_code=400, detail="Room name must be unique."
-        ) from exc
+    return room
 
 
 @router.post("/rooms/{room_id}/join")

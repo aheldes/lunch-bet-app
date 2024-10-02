@@ -1,11 +1,32 @@
 from fastapi import Depends
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from database import get_session
 from models.models import ApprovalStatus, Room, RoomUser
-from exceptions.custom_exceptions import RoomNotFoundError, UserAlreadyInRoomError
-from schemas import RoomJoinRequest
+from exceptions.custom_exceptions import (
+    RoomNameNotUniqueError,
+    RoomNotFoundError,
+    UserAlreadyInRoomError,
+)
+from schemas import RoomCreate, RoomJoinRequest
+
+
+async def create_room_dependency(
+    room_data: RoomCreate,
+    session: AsyncSession = Depends(get_session),
+):
+    """Dependency to handle creation of a room."""
+    new_room = Room(name=room_data.name, created_by=room_data.user_id)
+    try:
+        session.add(new_room)
+        await session.commit()
+        await session.refresh(new_room)
+        return new_room
+    except IntegrityError as exc:
+        await session.rollback()
+        raise RoomNameNotUniqueError("Room name must be unique.") from exc
 
 
 async def join_room_dependency(
