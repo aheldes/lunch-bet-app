@@ -20,3 +20,7 @@ class RoomResponse(RoomBase):
 
     class Config:
         orm_mode = True
+
+
+class RoomJoinRequest(BaseModel):
+    user_id: str
