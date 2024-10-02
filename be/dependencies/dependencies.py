@@ -2,9 +2,9 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from database.engine import get_session
-from database.models import ApprovalStatus, Room, RoomUser
-from dependencies.errors import RoomNotFoundError, UserAlreadyInRoomError
+from database import get_session
+from models.models import ApprovalStatus, Room, RoomUser
+from exceptions.custom_exceptions import RoomNotFoundError, UserAlreadyInRoomError
 from schemas import RoomJoinRequest
 
 
