@@ -4,8 +4,12 @@ from databases import Database
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 
 from .base_model import Base
+from settings import settings
 
-DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+DATABASE_URL = (
+    f"postgresql+asyncpg://{settings.DB_USERNAME}:"
+    f"{settings.DB_PASSWORD}@db:5432/postgres"
+)
 database = Database(DATABASE_URL)
 engine = create_async_engine(DATABASE_URL, echo=True)
 SessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession)

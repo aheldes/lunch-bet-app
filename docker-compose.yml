@@ -1,0 +1,46 @@
+services:
+  app:
+    container_name: app
+    build: .
+    environment:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    networks:
+      - ci-network
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ci-network
+
+  db:
+    image: postgres
+    container_name: local_pgdb
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - ci-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  local_pgdata:
+
+networks:
+  ci-network:

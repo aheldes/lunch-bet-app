@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime, timezone
 
 from database.base_model import Base
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import ForeignKey, TIMESTAMP, String
 from sqlalchemy.engine import Connection
 from sqlalchemy.event import listen
 from sqlalchemy.orm import mapped_column, Mapped, Mapper, Session, relationship
@@ -24,7 +24,9 @@ class Room(Base):
     name: Mapped[str] = mapped_column(
         String(15), index=True, nullable=False, unique=True
     )
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=lambda: datetime.now(tz=timezone.utc)
+    )
     created_by: Mapped[str] = mapped_column(nullable=False)
 
     users: Mapped[list["RoomUser"]] = relationship("RoomUser", back_populates="room")
@@ -55,6 +57,8 @@ class RoomUser(Base):
     status: Mapped[ApprovalStatus] = mapped_column(
         nullable=False, default=ApprovalStatus.PENDING
     )
-    request_time: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=lambda: datetime.now(tz=timezone.utc)
+    )
 
     room: Mapped[Room] = relationship("Room", back_populates="users")
