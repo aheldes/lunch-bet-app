@@ -1,0 +1,20 @@
+repos:
+  - repo: local
+    hooks:
+      - id: mypy
+        name: Run mypy
+        entry: bash -c "mypy ./be/."
+        language: system
+        types: [python]
+
+      - id: black
+        name: Run Black
+        entry: bash -c "black ./be/."
+        language: system
+        types: [python]
+
+      - id: pylint
+        name: Run pylint
+        entry: bash -c "pylint ./be/."
+        language: system
+        types: [python]
