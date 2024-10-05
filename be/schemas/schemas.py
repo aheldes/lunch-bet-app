@@ -22,5 +22,12 @@ class RoomResponse(RoomBase):
         orm_mode = True
 
 
-class RoomJoinRequest(BaseModel):
+class UserIDRequest(BaseModel):
     user_id: str
+
+
+class RoomUserResponse(BaseModel):
+    user_id: str
+    is_admin: bool
+    status: str
+    created_at: str

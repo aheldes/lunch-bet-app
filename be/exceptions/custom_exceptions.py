@@ -15,3 +15,14 @@ class RoomNotFoundError(Error):
 
 class UserAlreadyInRoomError(Error):
     """Raised when a user tries to join a room they are already in."""
+
+
+class UserNotAdminOfRoomError(Error):
+    """
+    Raised when a user tries to do admin actions for a room which they are
+    not an admin of.
+    """
+
+
+class UserNotInARoomError(Error):
+    """Raised when user tries to access a room where they are not approved."""

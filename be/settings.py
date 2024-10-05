@@ -12,4 +12,4 @@ class Settings(BaseSettings):
     DB_PASSWORD: str
 
 
-settings = Settings()
+settings = Settings()  # type: ignore

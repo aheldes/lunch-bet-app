@@ -1,18 +1,29 @@
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 from databases import Database
+import redis.asyncio as redis
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, create_async_engine
 
-from .base_model import Base
 from settings import settings
+from .base_model import Base
+
 
 DATABASE_URL = (
     f"postgresql+asyncpg://{settings.DB_USERNAME}:"
-    f"{settings.DB_PASSWORD}@db:5432/postgres"
+    f"{settings.DB_PASSWORD}@localhost:5432/postgres"
 )
 database = Database(DATABASE_URL)
 engine = create_async_engine(DATABASE_URL, echo=True)
 SessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession)
+
+
+async def get_redis() -> AsyncGenerator[redis.Redis, Any]:
+    """Yields an asyncrhonous redis session."""
+    pool = redis.StrictRedis(host="localhost", port=6379, db=0)
+    try:
+        yield pool
+    finally:
+        await pool.close()
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
