@@ -13,7 +13,7 @@ DATABASE_URL = (
     f"{settings.DB_PASSWORD}@localhost:5432/postgres"
 )
 database = Database(DATABASE_URL)
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL)
 SessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession)
 
 
