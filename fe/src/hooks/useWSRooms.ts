@@ -26,7 +26,7 @@ const useWebSocketRooms = () => {
         setData(parsedRooms)
       } else {
         const newRoom = parseRoomData([roomUpdates])
-        setData((prevData) => [...prevData, ...newRoom])
+        setData((prevData) => [...newRoom, ...prevData])
       }
     },
     onError: () => setError(true),
