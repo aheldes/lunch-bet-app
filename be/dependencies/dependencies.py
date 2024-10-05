@@ -50,7 +50,7 @@ async def create_room_dependency(
         return new_room
     except IntegrityError as exc:
         await session.rollback()
-        raise RoomNameNotUniqueError("Room name must be unique.") from exc
+        raise RoomNameNotUniqueError() from exc
 
 
 async def get_room(
@@ -60,7 +60,7 @@ async def get_room(
     """Dependency that fetches a room from db."""
     room = await session.get(Room, room_id)
     if room is None:
-        raise RoomNotFoundError("Room not found.")
+        raise RoomNotFoundError()
     return room
 
 
@@ -78,7 +78,7 @@ async def get_user_in_room(
     room_user = user_query.scalar_one_or_none()
 
     if room_user is None:
-        raise UserNotInARoomError("User not in a room.")
+        raise UserNotInARoomError()
 
     return room_user
 
@@ -96,7 +96,7 @@ async def must_be_admin(
     )
     room_user = user_query.scalar_one_or_none()
     if room_user is None or not room_user.is_admin:
-        raise UserNotAdminOfRoomError("Only admins can do this acction for this room.")
+        raise UserNotAdminOfRoomError()
     return True
 
 
@@ -112,7 +112,7 @@ async def join_room_dependency(
         select(RoomUser).filter_by(room_id=room_id, user_id=user_id)
     )
     if existing_user.scalar() is not None:
-        raise UserAlreadyInRoomError("User is already in the room.")
+        raise UserAlreadyInRoomError()
 
     room_user = RoomUser(
         room_id=room_id,
@@ -186,10 +186,10 @@ async def approve_user(
     user_to_approve = user_query.scalar_one_or_none()
 
     if user_to_approve is None:
-        raise UserNotInARoomError("User not in room.")
+        raise UserNotInARoomError()
 
     if user_to_approve.status in (ApprovalStatus.APPROVED, ApprovalStatus.REJECTED):
-        raise UserNotPending("User was already approved/rejected.")
+        raise UserNotPending()
 
     if status == AdminApprovalStatus.APPROVE:
         user_to_approve.status = ApprovalStatus.APPROVED
