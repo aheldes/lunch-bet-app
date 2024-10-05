@@ -16,7 +16,7 @@ from exceptions.custom_exceptions import (
     UserAlreadyInRoomError,
     UserNotInARoomError,
 )
-from schemas import RoomCreate, UserIDRequest, RoomUserResponse
+from schemas import RoomCreate, RoomUserResponse
 
 logger = logging.getLogger(__name__)
 
@@ -57,13 +57,12 @@ async def get_room(
 
 async def join_room_dependency(
     room_id: str,
-    user_id_request: UserIDRequest,
+    user_id: str,
     _: Room = Depends(get_room),
     redis: Redis = Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
     """Dependency to handle joining a room."""
-    user_id = user_id_request.user_id
     existing_user = await session.execute(
         select(RoomUser).filter_by(room_id=room_id, user_id=user_id)
     )

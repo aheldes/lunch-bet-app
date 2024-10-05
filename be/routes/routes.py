@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
 from models import Room, RoomUser
-from schemas import RoomCreate, RoomResponse, UserIDRequest, RoomUserResponse
+from schemas import RoomCreate, RoomResponse, RoomUserResponse
 from dependencies import create_room_dependency, join_room_dependency, get_room_users
 
 
@@ -20,8 +20,6 @@ async def create_room(
 
 @router.post("/rooms/{room_id}/join")
 async def join_room(
-    room_id: str,  # pylint: disable=unused-argument
-    user_id_request: UserIDRequest,  # pylint: disable=unused-argument
     _: RoomUser = Depends(join_room_dependency),
 ):
     """Request to join a room."""

@@ -22,10 +22,6 @@ class RoomResponse(RoomBase):
         orm_mode = True
 
 
-class UserIDRequest(BaseModel):
-    user_id: str
-
-
 class RoomUserResponse(BaseModel):
     user_id: str
     is_admin: bool
