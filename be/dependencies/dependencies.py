@@ -1,5 +1,4 @@
 import json
-import enum
 import logging
 from typing import Optional
 
@@ -21,21 +20,9 @@ from exceptions.custom_exceptions import (
 )
 from schemas import RoomCreate, RoomResponse, RoomUserResponse
 
+from .enums import AdminApprovalStatus, UserType
+
 logger = logging.getLogger(__name__)
-
-
-class UserType(enum.Enum):
-    """Enum for user types of a room."""
-
-    ADMIN = "admin"
-    NON_ADMIN = "non_admin"
-
-
-class AdminApprovalStatus(enum.Enum):
-    """Enum for user approval status."""
-
-    APPROVE = "approve"
-    REJECTE = "reject"
 
 
 class CacheKeyGenerator:
