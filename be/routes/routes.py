@@ -3,7 +3,12 @@ from fastapi.responses import JSONResponse
 
 from models import Room, RoomUser
 from schemas import RoomResponse, RoomUserResponse
-from dependencies import create_room_dependency, join_room_dependency, get_room_users
+from dependencies import (
+    approve_user,
+    create_room_dependency,
+    get_room_users,
+    join_room_dependency,
+)
 
 
 router = APIRouter()
@@ -29,3 +34,9 @@ async def join_room(
 async def get_users(users: list[RoomUserResponse] = Depends(get_room_users)):
     """Requests to join room"""
     return users
+
+
+@router.post("/rooms/{room_id}/users/moderate")
+async def approve_users(_: RoomUser = Depends(approve_user)):
+    """Approve/Reject user from joining a room"""
+    return JSONResponse(content=None, status_code=status.HTTP_201_CREATED)

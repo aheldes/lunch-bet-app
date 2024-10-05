@@ -14,7 +14,9 @@ from exceptions.custom_exceptions import (
     RoomNameNotUniqueError,
     RoomNotFoundError,
     UserAlreadyInRoomError,
+    UserNotAdminOfRoomError,
     UserNotInARoomError,
+    UserNotPending,
 )
 from schemas import RoomCreate, RoomUserResponse
 
@@ -26,6 +28,13 @@ class UserType(enum.Enum):
 
     ADMIN = "admin"
     NON_ADMIN = "non_admin"
+
+
+class AdminApprovalStatus(enum.Enum):
+    """Enum for user approval status."""
+
+    APPROVE = "approve"
+    REJECTE = "reject"
 
 
 async def create_room_dependency(
@@ -53,6 +62,42 @@ async def get_room(
     if room is None:
         raise RoomNotFoundError("Room not found.")
     return room
+
+
+async def get_user_in_room(
+    room_id: str,
+    user_id: str,
+    session: AsyncSession = Depends(get_session),
+) -> RoomUser:
+    """Dependency that checks if user is in a room"""
+    user_query = await session.execute(
+        select(RoomUser).filter_by(
+            room_id=room_id, user_id=user_id, status=ApprovalStatus.APPROVED
+        )
+    )
+    room_user = user_query.scalar_one_or_none()
+
+    if room_user is None:
+        raise UserNotInARoomError("User not in a room.")
+
+    return room_user
+
+
+async def must_be_admin(
+    room_id: str,
+    admin_user_id: str,
+    session: AsyncSession = Depends(get_session),
+) -> bool:
+    """Dependency that checks if a user is admin of a room."""
+    user_query = await session.execute(
+        select(RoomUser).filter_by(
+            room_id=room_id, user_id=admin_user_id, status=ApprovalStatus.APPROVED
+        )
+    )
+    room_user = user_query.scalar_one_or_none()
+    if room_user is None or not room_user.is_admin:
+        raise UserNotAdminOfRoomError("Only admins can do this acction for this room.")
+    return True
 
 
 async def join_room_dependency(
@@ -87,22 +132,12 @@ async def join_room_dependency(
 
 async def get_room_users(
     room_id: str,
-    user_id: str,
     _: Room = Depends(get_room),
+    room_user: RoomUser = Depends(get_user_in_room),
     redis: Redis = Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ) -> list[RoomUserResponse]:
     """Dependency for getting users."""
-    room_user_query = await session.execute(
-        select(RoomUser).filter_by(
-            room_id=room_id, user_id=user_id, status=ApprovalStatus.APPROVED
-        )
-    )
-    room_user = room_user_query.scalar_one_or_none()
-
-    if room_user is None:
-        raise UserNotInARoomError("User not in room.")
-
     is_admin = room_user.is_admin
 
     user_type = UserType.ADMIN if is_admin else UserType.NON_ADMIN
@@ -134,6 +169,39 @@ async def get_room_users(
     await set_cache(redis, room_id, user_type, users_response)
 
     return users_response
+
+
+async def approve_user(
+    room_id: str,
+    user_id: str,
+    status: AdminApprovalStatus,
+    _: bool = Depends(must_be_admin),
+    session: AsyncSession = Depends(get_session),
+    redis: Redis = Depends(get_redis),
+):
+    """Dependency for approval/rejection of an user"""
+    user_query = await session.execute(
+        select(RoomUser).filter_by(room_id=room_id, user_id=user_id)
+    )
+    user_to_approve = user_query.scalar_one_or_none()
+
+    if user_to_approve is None:
+        raise UserNotInARoomError("User not in room.")
+
+    if user_to_approve.status in (ApprovalStatus.APPROVED, ApprovalStatus.REJECTED):
+        raise UserNotPending("User was already approved/rejected.")
+
+    if status == AdminApprovalStatus.APPROVE:
+        user_to_approve.status = ApprovalStatus.APPROVED
+    elif status == AdminApprovalStatus.REJECTE:
+        user_to_approve.status = ApprovalStatus.REJECTED
+
+    await session.commit()
+
+    await invalidate_cache(redis, room_id, UserType.NON_ADMIN)
+    await invalidate_cache(redis, room_id, UserType.ADMIN)
+
+    return user_to_approve
 
 
 async def invalidate_cache(redis: Redis, room_id: str, user_type: UserType):

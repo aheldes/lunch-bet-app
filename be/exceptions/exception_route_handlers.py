@@ -7,6 +7,7 @@ from exceptions.custom_exceptions import (
     UserAlreadyInRoomError,
     UserNotAdminOfRoomError,
     UserNotInARoomError,
+    UserNotPending,
 )
 
 # pylint: disable=missing-function-docstring
@@ -40,3 +41,7 @@ async def user_not_in_a_room_handler(
     _: Request, exc: UserNotInARoomError
 ) -> JSONResponse:
     return JSONResponse(status_code=403, content={"detail": exc.detail})
+
+
+async def user_not_pending_handler(_: Request, exc: UserNotPending) -> JSONResponse:
+    return JSONResponse(status_code=400, content={"detail": exc.detail})

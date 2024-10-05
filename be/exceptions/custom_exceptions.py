@@ -26,3 +26,10 @@ class UserNotAdminOfRoomError(Error):
 
 class UserNotInARoomError(Error):
     """Raised when user tries to access a room where they are not approved."""
+
+
+class UserNotPending(Error):
+    """
+    Raised when admin tries to approve/reject an user that was already
+    approved/rejected.
+    """

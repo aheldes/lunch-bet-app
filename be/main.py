@@ -9,6 +9,7 @@ from exceptions.custom_exceptions import (
     UserAlreadyInRoomError,
     UserNotAdminOfRoomError,
     UserNotInARoomError,
+    UserNotPending,
 )
 from exceptions.exception_route_handlers import (
     room_name_not_unique_error_handler,
@@ -16,6 +17,7 @@ from exceptions.exception_route_handlers import (
     user_already_in_room_error_handler,
     user_not_admin_of_room_handler,
     user_not_in_a_room_handler,
+    user_not_pending_handler,
 )
 from routes.routes import router
 
@@ -37,6 +39,7 @@ error_handlers = [
     (UserAlreadyInRoomError, user_already_in_room_error_handler),
     (UserNotAdminOfRoomError, user_not_admin_of_room_handler),
     (UserNotInARoomError, user_not_in_a_room_handler),
+    (UserNotPending, user_not_pending_handler),
 ]
 
 for handler in error_handlers:
