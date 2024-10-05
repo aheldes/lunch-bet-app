@@ -20,6 +20,7 @@ from exceptions.exception_route_handlers import (
     user_not_pending_handler,
 )
 from routes.routes import router
+from routes.ws_routes import router as ws_router
 
 
 @asynccontextmanager
@@ -48,3 +49,4 @@ for handler in error_handlers:
 
 
 app.include_router(router)
+app.include_router(ws_router)

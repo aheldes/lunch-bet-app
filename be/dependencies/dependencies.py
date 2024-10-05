@@ -1,6 +1,7 @@
 import json
 import enum
 import logging
+from typing import Optional
 
 from fastapi import Depends
 from redis.asyncio import Redis
@@ -18,7 +19,7 @@ from exceptions.custom_exceptions import (
     UserNotInARoomError,
     UserNotPending,
 )
-from schemas import RoomCreate, RoomUserResponse
+from schemas import RoomCreate, RoomResponse, RoomUserResponse
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +38,23 @@ class AdminApprovalStatus(enum.Enum):
     REJECTE = "reject"
 
 
+class CacheKeyGenerator:
+    """Helper class for getting cache keys."""
+
+    @staticmethod
+    def generate_room_user_cache_key(room_id: str, user_type: UserType) -> str:
+        """Generate room user cache key from room id and user type."""
+        return f"room:{room_id}:users:{user_type}"
+
+    @staticmethod
+    def generate_rooms_cache_key() -> str:
+        """Generate rooms cache key."""
+        return "rooms"
+
+
 async def create_room_dependency(
     room_data: RoomCreate,
+    redis: Redis = Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
     """Dependency to handle creation of a room."""
@@ -47,6 +63,15 @@ async def create_room_dependency(
         session.add(new_room)
         await session.commit()
         await session.refresh(new_room)
+
+        room_response = RoomResponse(
+            id=new_room.id,
+            created_at=new_room.created_at.isoformat(),
+            created_by=new_room.created_by,
+            name=new_room.name,
+        )
+        await redis.publish("rooms", json.dumps(room_response.model_dump()))
+        await invalidate_cache(CacheKeyGenerator.generate_rooms_cache_key(), redis)
         return new_room
     except IntegrityError as exc:
         await session.rollback()
@@ -62,6 +87,37 @@ async def get_room(
     if room is None:
         raise RoomNotFoundError()
     return room
+
+
+async def get_all_rooms() -> list[RoomResponse]:
+    """Fetch all rooms from the database."""
+    async for redis in get_redis():
+        cached_rooms = await get_cache(
+            CacheKeyGenerator.generate_rooms_cache_key(), redis
+        )
+        if cached_rooms:
+            logger.info("Cached rooms found")
+            return [
+                RoomResponse.model_validate(obj) for obj in json.loads(cached_rooms)
+            ]
+        logger.info("No cached rooms found")
+        async for session in get_session():
+            rooms_query = await session.execute(select(Room))
+            rooms_response = [
+                RoomResponse(
+                    id=room.id,
+                    created_at=room.created_at.isoformat(),
+                    created_by=room.created_by,
+                    name=room.name,
+                )
+                for room in rooms_query.scalars()
+            ]
+            await set_cache(
+                CacheKeyGenerator.generate_rooms_cache_key(),
+                json.dumps([room.model_dump() for room in rooms_response]),
+                redis,
+            )
+    return rooms_response
 
 
 async def get_user_in_room(
@@ -125,7 +181,9 @@ async def join_room_dependency(
 
     await session.commit()
 
-    await invalidate_cache(redis, room_id, UserType.ADMIN)
+    await invalidate_cache(
+        CacheKeyGenerator.generate_room_user_cache_key(room_id, UserType.ADMIN), redis
+    )
 
     return room_user
 
@@ -142,10 +200,14 @@ async def get_room_users(
 
     user_type = UserType.ADMIN if is_admin else UserType.NON_ADMIN
 
-    cached_users = await get_cache(redis, room_id, user_type)
+    cached_users = await get_cache(
+        CacheKeyGenerator.generate_room_user_cache_key(room_id, UserType.ADMIN), redis
+    )
     if cached_users:
         logger.info("Cached users found")
-        return cached_users
+        return [
+            RoomUserResponse.model_validate(obj) for obj in json.loads(cached_users)
+        ]
 
     logger.info("No cached users found")
     query = select(RoomUser).filter_by(room_id=room_id)
@@ -166,7 +228,11 @@ async def get_room_users(
         for user in users
     ]
 
-    await set_cache(redis, room_id, user_type, users_response)
+    await set_cache(
+        CacheKeyGenerator.generate_room_user_cache_key(room_id, user_type),
+        json.dumps([user.model_dump() for user in users_response]),
+        redis,
+    )
 
     return users_response
 
@@ -198,31 +264,30 @@ async def approve_user(
 
     await session.commit()
 
-    await invalidate_cache(redis, room_id, UserType.NON_ADMIN)
-    await invalidate_cache(redis, room_id, UserType.ADMIN)
+    await invalidate_cache(
+        CacheKeyGenerator.generate_room_user_cache_key(room_id, UserType.NON_ADMIN),
+        redis,
+    )
+    await invalidate_cache(
+        CacheKeyGenerator.generate_room_user_cache_key(room_id, UserType.ADMIN), redis
+    )
 
     return user_to_approve
 
 
-async def invalidate_cache(redis: Redis, room_id: str, user_type: UserType):
-    """Invalidates a users cache for a specific room annd user type."""
-    cache_key = f"room:{room_id}:users:{user_type}"
+async def invalidate_cache(cache_key: str, redis: Redis) -> None:
+    """Invalidates the cache for a specific key."""
     await redis.delete(cache_key)
 
 
-async def set_cache(
-    redis: Redis, room_id: str, user_type: UserType, data: list[RoomUserResponse]
-):
-    """Sets a users cache for a specific room annd user type."""
-    cache_key = f"room:{room_id}:users:{user_type}"
-    json_data = json.dumps([user.model_dump() for user in data])
+async def set_cache(cache_key: str, json_data: str, redis: Redis) -> None:
+    """Sets the cache for a specific key, accepting JSON string."""
     await redis.set(cache_key, json_data)
 
 
-async def get_cache(redis: Redis, room_id: str, user_type: UserType):
-    """Gets a users cache for a specific room annd user type."""
-    cache_key = f"room:{room_id}:users:{user_type}"
+async def get_cache(cache_key: str, redis: Redis) -> Optional[str]:
+    """Gets the cache for a specific key, returning JSON string."""
     cached_data = await redis.get(cache_key)
     if cached_data:
-        return [RoomUserResponse.model_validate(obj) for obj in json.loads(cached_data)]
+        return cached_data.decode("utf-8")
     return None

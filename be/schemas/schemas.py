@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from pydantic import BaseModel, Field
 
 # pylint: disable=missing-class-docstring, too-few-public-methods
@@ -15,11 +13,8 @@ class RoomCreate(RoomBase):
 
 class RoomResponse(RoomBase):
     id: str
-    created_at: datetime
+    created_at: str
     created_by: str
-
-    class Config:
-        orm_mode = True
 
 
 class RoomUserResponse(BaseModel):

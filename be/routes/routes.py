@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
 from models import Room, RoomUser
-from schemas import RoomResponse, RoomUserResponse
+from schemas import RoomUserResponse
 from dependencies import (
     approve_user,
     create_room_dependency,
@@ -14,12 +14,12 @@ from dependencies import (
 router = APIRouter()
 
 
-@router.post("/rooms/", response_model=RoomResponse)
+@router.post("/rooms/")
 async def create_room(
-    room: Room = Depends(create_room_dependency),
+    _: Room = Depends(create_room_dependency),
 ):
     """Create a new room with the provided name and user ID."""
-    return room
+    return JSONResponse(content=None, status_code=status.HTTP_201_CREATED)
 
 
 @router.post("/rooms/{room_id}/join")
