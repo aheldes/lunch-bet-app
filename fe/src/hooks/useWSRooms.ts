@@ -18,13 +18,8 @@ const useWebSocketRooms = (
     onMessage: (event) => {
       const roomUpdates = JSON.parse(event.data.replace(/'/g, '"'))
 
-      if (Array.isArray(roomUpdates)) {
-        const parsedRooms = parseRoomData(roomUpdates)
-        setData(parsedRooms)
-      } else {
-        const newRoom = parseRoomData([roomUpdates])
-        setData((prevData) => [...newRoom, ...prevData])
-      }
+      const newRoom = parseRoomData([roomUpdates])
+      setData((prevData) => [...newRoom, ...prevData])
     },
     onError: () => setError(true),
   })
