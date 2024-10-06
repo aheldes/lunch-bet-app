@@ -70,10 +70,10 @@ class WebSocketManager:
         while True:
             message = await pubsub.get_message(ignore_subscribe_messages=True)
             if message:
-                room_id = message["channel"].decode("utf-8")
-                if room_id in self.channels:
+                channel = message["channel"].decode("utf-8")
+                if channel in self.channels:
                     data = message["data"].decode("utf-8")
-                    all_sockets = self.channels[room_id]
+                    all_sockets = self.channels[channel]
                     for socket in all_sockets:
                         await socket.send_text(data)
             await asyncio.sleep(0.01)
