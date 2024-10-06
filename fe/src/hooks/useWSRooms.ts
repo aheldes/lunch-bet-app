@@ -14,26 +14,20 @@ const useWebSocketRooms = (
   const { uuid } = useUUIDContext()
   const [error, setError] = useState<boolean>(false)
 
-  const { lastMessage } = useWebSocket(`${URL}/${uuid}`, {
-    onMessage: (message) => {
-      if (message !== null) {
-        const roomUpdates = JSON.parse(message.data.replace(/'/g, '"'))
+  const _ = useWebSocket(`${URL}/${uuid}`, {
+    onMessage: (event) => {
+      const roomUpdates = JSON.parse(event.data.replace(/'/g, '"'))
 
+      if (Array.isArray(roomUpdates)) {
+        const parsedRooms = parseRoomData(roomUpdates)
+        setData(parsedRooms)
+      } else {
         const newRoom = parseRoomData([roomUpdates])
         setData((prevData) => [...newRoom, ...prevData])
       }
     },
     onError: () => setError(true),
   })
-
-  useEffect(() => {
-    if (lastMessage !== null) {
-      const roomUpdates = JSON.parse(lastMessage.data.replace(/'/g, '"'))
-
-      const newRoom = parseRoomData([roomUpdates])
-      setData((prevData) => [...newRoom, ...prevData])
-    }
-  }, [lastMessage])
 
   return error
 }
