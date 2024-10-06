@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import useWebSocket from 'react-use-websocket'
 
 import parseRoomData from '@/utils/parseRoomData'
