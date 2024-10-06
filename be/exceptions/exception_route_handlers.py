@@ -50,3 +50,14 @@ async def user_not_in_a_room_handler(
 
 async def user_not_pending_handler(_: Request, exc: UserNotPending) -> JSONResponse:
     return JSONResponse(status_code=400, content={"detail": exc.detail})
+
+
+error_handlers = [
+    (RoomNameNotUniqueError, room_name_not_unique_error_handler),
+    (RoomNotFoundError, room_not_found_error_handler),
+    (UserAlreadyInRoomError, user_already_in_room_error_handler),
+    (UserNotAdminOfRoomError, user_not_admin_of_room_handler),
+    (UserNotFound, user_not_found_handler),
+    (UserNotInARoomError, user_not_in_a_room_handler),
+    (UserNotPending, user_not_pending_handler),
+]

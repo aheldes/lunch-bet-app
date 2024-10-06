@@ -4,24 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import disconnect_db, init_db
-from exceptions.custom_exceptions import (
-    RoomNameNotUniqueError,
-    RoomNotFoundError,
-    UserAlreadyInRoomError,
-    UserNotAdminOfRoomError,
-    UserNotFound,
-    UserNotInARoomError,
-    UserNotPending,
-)
-from exceptions.exception_route_handlers import (
-    room_name_not_unique_error_handler,
-    room_not_found_error_handler,
-    user_already_in_room_error_handler,
-    user_not_admin_of_room_handler,
-    user_not_found_handler,
-    user_not_in_a_room_handler,
-    user_not_pending_handler,
-)
+from exceptions.exception_route_handlers import error_handlers
 from routes.routes import router
 from routes.ws_routes import router as ws_router
 
@@ -49,17 +32,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-error_handlers = [
-    (RoomNameNotUniqueError, room_name_not_unique_error_handler),
-    (RoomNotFoundError, room_not_found_error_handler),
-    (UserAlreadyInRoomError, user_already_in_room_error_handler),
-    (UserNotAdminOfRoomError, user_not_admin_of_room_handler),
-    (UserNotFound, user_not_found_handler),
-    (UserNotInARoomError, user_not_in_a_room_handler),
-    (UserNotPending, user_not_pending_handler),
-]
 
 for handler in error_handlers:
     # Ignore due to bug https://github.com/encode/starlette/pull/2403
