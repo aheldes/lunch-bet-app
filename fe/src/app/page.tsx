@@ -23,11 +23,6 @@ const Home: React.FC = () => {
           <RoomCard key={room.id} {...room} />
         ))}
         {isError && 'error'}
-        {Array(3)
-          .fill(null)
-          .map((_, index) => (
-            <RoomCardLoading key={index} />
-          ))}
       </main>
     </div>
   )
