@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
 from models import Room, RoomUser
-from schemas import RoomUserResponse
+from schemas import RoomResponse, RoomUserResponse
 from dependencies import (
     approve_user,
     create_room_dependency,
+    get_all_rooms,
     get_room_users,
     join_room_dependency,
 )
@@ -14,7 +15,13 @@ from dependencies import (
 router = APIRouter()
 
 
-@router.post("/rooms/")
+@router.get("/rooms")
+async def get_rooms(rooms: list[RoomResponse] = Depends(get_all_rooms)):
+    """Gets the list of all rooms"""
+    return rooms
+
+
+@router.post("/rooms")
 async def create_room(
     _: Room = Depends(create_room_dependency),
 ):
@@ -32,7 +39,7 @@ async def join_room(
 
 @router.get("/rooms/{room_id}/users", response_model=list[RoomUserResponse])
 async def get_users(users: list[RoomUserResponse] = Depends(get_room_users)):
-    """Requests to join room"""
+    """Gets the list of all users for a room"""
     return users
 
 

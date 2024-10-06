@@ -1,30 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import useWebSocket from 'react-use-websocket'
-import { Room } from '@/types'
 
-const parseRoomData = (roomData: any[]): Room[] => {
-  return roomData.map((room) => ({
-    id: room.id,
-    name: room.name,
-    created_by: room.created_by,
-    created_at: new Date(room.created_at),
-  }))
-}
+import parseRoomData from '@/utils/parseRoomData'
+
+import { Room } from '@/types'
+import useUUIDContext from './useUUIDContext'
 
 const URL = 'ws://127.0.0.1:8000/ws/rooms'
 
-const useWebSocketRooms = () => {
-  const [data, setData] = useState<Room[]>([])
+const useWebSocketRooms = (
+  setData: React.Dispatch<React.SetStateAction<Room[]>>
+) => {
+  const { uuid } = useUUIDContext()
   const [error, setError] = useState<boolean>(false)
 
-  const _ = useWebSocket(URL, {
-    onMessage: (event) => {
-      const roomUpdates = JSON.parse(event.data.replace(/'/g, '"'))
+  const { lastMessage } = useWebSocket(`${URL}/${uuid}`, {
+    onMessage: (message) => {
+      if (message !== null) {
+        const roomUpdates = JSON.parse(message.data.replace(/'/g, '"'))
 
-      if (Array.isArray(roomUpdates)) {
-        const parsedRooms = parseRoomData(roomUpdates)
-        setData(parsedRooms)
-      } else {
         const newRoom = parseRoomData([roomUpdates])
         setData((prevData) => [...newRoom, ...prevData])
       }
@@ -32,7 +26,16 @@ const useWebSocketRooms = () => {
     onError: () => setError(true),
   })
 
-  return { data, error }
+  useEffect(() => {
+    if (lastMessage !== null) {
+      const roomUpdates = JSON.parse(lastMessage.data.replace(/'/g, '"'))
+
+      const newRoom = parseRoomData([roomUpdates])
+      setData((prevData) => [...newRoom, ...prevData])
+    }
+  }, [lastMessage])
+
+  return error
 }
 
 export default useWebSocketRooms

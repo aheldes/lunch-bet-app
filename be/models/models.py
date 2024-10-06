@@ -17,6 +17,17 @@ class ApprovalStatus(enum.Enum):
     REJECTED = "rejected"
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(primary_key=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=lambda: datetime.now(tz=timezone.utc)
+    )
+
+    rooms: Mapped[list["RoomUser"]] = relationship("RoomUser", back_populates="user")
+
+
 class Room(Base):
     __tablename__ = "rooms"
 
@@ -27,7 +38,7 @@ class Room(Base):
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), default=lambda: datetime.now(tz=timezone.utc)
     )
-    created_by: Mapped[str] = mapped_column(nullable=False)
+    created_by: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False)
 
     users: Mapped[list["RoomUser"]] = relationship("RoomUser", back_populates="room")
 
@@ -52,7 +63,7 @@ class RoomUser(Base):
     __tablename__ = "room_users"
 
     room_id: Mapped[str] = mapped_column(ForeignKey("rooms.id"), primary_key=True)
-    user_id: Mapped[str] = mapped_column(primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), primary_key=True)
     is_admin: Mapped[bool] = mapped_column(default=False)
     status: Mapped[ApprovalStatus] = mapped_column(
         nullable=False, default=ApprovalStatus.PENDING
@@ -62,3 +73,4 @@ class RoomUser(Base):
     )
 
     room: Mapped[Room] = relationship("Room", back_populates="users")
+    user: Mapped[User] = relationship("User", back_populates="rooms")

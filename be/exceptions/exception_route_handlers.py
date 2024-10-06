@@ -5,6 +5,7 @@ from exceptions.custom_exceptions import (
     RoomNameNotUniqueError,
     RoomNotFoundError,
     UserAlreadyInRoomError,
+    UserNotFound,
     UserNotAdminOfRoomError,
     UserNotInARoomError,
     UserNotPending,
@@ -35,6 +36,10 @@ async def user_not_admin_of_room_handler(
     _: Request, exc: UserNotAdminOfRoomError
 ) -> JSONResponse:
     return JSONResponse(status_code=403, content={"detail": exc.detail})
+
+
+async def user_not_found_handler(_: Request, exc: UserNotFound) -> JSONResponse:
+    return JSONResponse(status_code=400, content={"detail": exc.detail})
 
 
 async def user_not_in_a_room_handler(

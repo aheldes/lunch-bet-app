@@ -2,14 +2,18 @@
 
 import { ReactNode } from 'react'
 import { UUIDProvider } from '@/context/UUIDContext'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 interface RootProviderProps {
   readonly children: ReactNode
 }
 
-// RootProvider component
+const queryClient = new QueryClient()
+
 const RootProvider: React.FC<RootProviderProps> = ({ children }) => (
-  <UUIDProvider>{children}</UUIDProvider>
+  <QueryClientProvider client={queryClient}>
+    <UUIDProvider>{children}</UUIDProvider>
+  </QueryClientProvider>
 )
 
 export default RootProvider

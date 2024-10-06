@@ -29,6 +29,13 @@ class UserNotAdminOfRoomError(Exception):
         self.detail = "Only admins can do this acction for this room."
 
 
+class UserNotFound(Exception):
+    """Raised when user not found."""
+
+    def __init__(self):
+        self.detail = "User not found for the provided user_id."
+
+
 class UserNotInARoomError(Exception):
     """Raised when user tries to access a room where they are not approved."""
 

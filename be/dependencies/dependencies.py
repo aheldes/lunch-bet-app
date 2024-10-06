@@ -8,12 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from database import get_session, get_redis
-from models.models import ApprovalStatus, Room, RoomUser
+from models.models import ApprovalStatus, Room, RoomUser, User
 from exceptions.custom_exceptions import (
     RoomNameNotUniqueError,
     RoomNotFoundError,
     UserAlreadyInRoomError,
     UserNotAdminOfRoomError,
+    UserNotFound,
     UserNotInARoomError,
     UserNotPending,
 )
@@ -22,7 +23,30 @@ from schemas import RoomCreate, RoomResponse, RoomUserResponse
 from .cache import CacheKeyGenerator, get_cache, invalidate_cache, set_cache
 from .enums import AdminApprovalStatus, UserType
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn.error")
+
+
+async def create_user(user_id: str):
+    """Creates a new user."""
+    user = User(id=user_id)
+    logger.info("Creating user.")
+    async for session in get_session():
+        try:
+            session.add(user)
+            await session.commit()
+            logger.info("User created.")
+        except IntegrityError:
+            await session.rollback()
+            logger.info("User not created as already existing.")
+
+
+async def get_user(user_id: str, session: AsyncSession) -> User:
+    """Fetches a user from db and raises an error if non-existing."""
+    result = await session.execute(select(User).filter_by(id=user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise UserNotFound()
+    return user
 
 
 async def create_room_dependency(
@@ -30,13 +54,13 @@ async def create_room_dependency(
     redis: Redis = Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    """Dependency to handle creation of a room."""
-    new_room = Room(name=room_data.name, created_by=room_data.user_id)
+    """Dependency to handle the creation of a room."""
+    user = await get_user(room_data.user_id, session)
+    new_room = Room(name=room_data.name, created_by=user.id)
     try:
         session.add(new_room)
         await session.commit()
         await session.refresh(new_room)
-
         room_response = RoomResponse(
             id=new_room.id,
             created_at=new_room.created_at.isoformat(),
@@ -62,34 +86,30 @@ async def get_room(
     return room
 
 
-async def get_all_rooms() -> list[RoomResponse]:
+async def get_all_rooms(
+    redis: Redis = Depends(get_redis), session: AsyncSession = Depends(get_session)
+) -> list[RoomResponse]:
     """Fetch all rooms from the database."""
-    async for redis in get_redis():
-        cached_rooms = await get_cache(
-            CacheKeyGenerator.generate_rooms_cache_key(), redis
+    cached_rooms = await get_cache(CacheKeyGenerator.generate_rooms_cache_key(), redis)
+    if cached_rooms:
+        logger.info("Cached rooms found")
+        return [RoomResponse.model_validate(obj) for obj in json.loads(cached_rooms)]
+    logger.info("No cached rooms found")
+    rooms_query = await session.execute(select(Room).order_by(Room.created_at.desc()))
+    rooms_response = [
+        RoomResponse(
+            id=room.id,
+            created_at=room.created_at.isoformat(),
+            created_by=room.created_by,
+            name=room.name,
         )
-        if cached_rooms:
-            logger.info("Cached rooms found")
-            return [
-                RoomResponse.model_validate(obj) for obj in json.loads(cached_rooms)
-            ]
-        logger.info("No cached rooms found")
-        async for session in get_session():
-            rooms_query = await session.execute(select(Room))
-            rooms_response = [
-                RoomResponse(
-                    id=room.id,
-                    created_at=room.created_at.isoformat(),
-                    created_by=room.created_by,
-                    name=room.name,
-                )
-                for room in rooms_query.scalars()
-            ]
-            await set_cache(
-                CacheKeyGenerator.generate_rooms_cache_key(),
-                json.dumps([room.model_dump() for room in rooms_response]),
-                redis,
-            )
+        for room in rooms_query.scalars()
+    ]
+    await set_cache(
+        CacheKeyGenerator.generate_rooms_cache_key(),
+        json.dumps([room.model_dump() for room in rooms_response]),
+        redis,
+    )
     return rooms_response
 
 

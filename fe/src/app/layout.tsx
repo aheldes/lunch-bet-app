@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
 import RootProvider from './rootProvider'
-import CustomAvatar from '@/components/other/custom-avatar'
+import CustomAvatar from '@/components/other/CustomAvatar'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
