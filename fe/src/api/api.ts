@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 
 import parseRoomData from '@/utils/parseRoomData'
 
@@ -15,4 +15,14 @@ export const fetchTasks = async (): Promise<Room[]> => {
   } catch (error) {
     throw error
   }
+}
+
+export const createRoom = async ({
+  name,
+  user_id,
+}: {
+  name: string
+  user_id: string
+}): Promise<AxiosResponse> => {
+  return await axios.post(`${API_URL}/rooms`, { name, user_id })
 }

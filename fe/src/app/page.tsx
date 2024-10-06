@@ -4,6 +4,7 @@ import useWebSocketRooms from '@/hooks/useWSRooms'
 import useFetchRooms from '@/hooks/useFetchRooms'
 
 import { RoomCard, RoomCardLoading } from '@/components/other/RoomCard'
+import RoomCreateDialog from '@/components/other/RoomCreateDialog'
 
 import { Room } from '@/types'
 
@@ -13,8 +14,9 @@ const Home: React.FC = () => {
   const socketError = useWebSocketRooms(setData)
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
+    <div className="grid grid-rows-[20px_1fr_20px] justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <main className="flex flex-col gap-8 row-start-2">
+        <RoomCreateDialog />
         {isLoading &&
           Array(3)
             .fill(null)

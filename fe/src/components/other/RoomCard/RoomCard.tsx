@@ -27,7 +27,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
       <TooltipProvider>
         <CardFooter className="flex justify-end">
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <Button variant="outline" size="icon">
                 <ChevronRight className="h-4 w-4" />
               </Button>
