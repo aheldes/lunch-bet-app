@@ -24,5 +24,15 @@ export const createRoom = async ({
   name: string
   user_id: string
 }): Promise<AxiosResponse> => {
-  return await axios.post(`${API_URL}/rooms`, { name, user_id })
+  try {
+    return await axios.post(`${API_URL}/rooms`, { name, user_id })
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.detail ||
+          'An error occurred while creating the room'
+      )
+    }
+    throw new Error('An error occurred while creating the room')
+  }
 }

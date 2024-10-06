@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { createRoom } from '@/api/api'
 import useUUIDContext from '@/hooks/useUUIDContext'
+import { useToast } from '@/hooks/use-toast'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -40,6 +41,7 @@ type FormData = z.infer<typeof schema>
 const RoomCreateDialog: React.FC = () => {
   const [open, setOpen] = useState(false)
   const { uuid } = useUUIDContext()
+  const { toast } = useToast()
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -49,19 +51,26 @@ const RoomCreateDialog: React.FC = () => {
 
   const mutation = useMutation({
     mutationFn: createRoom,
-    onSuccess: (response) => {
-      console.log('Room created successfully', response.status)
+    onSuccess: () => {
       form.reset()
       setOpen(false)
+      toast({
+        title: 'Success',
+        description: 'Room successfully created.',
+      })
     },
     onError: (error) => {
-      console.error('Error creating room:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Error.',
+        description: error.message,
+      })
     },
   })
 
   const onSubmit = async (data: FormData) => {
     if (uuid) {
-      await mutation.mutateAsync({
+      mutation.mutate({
         name: data.roomName,
         user_id: uuid,
       })
