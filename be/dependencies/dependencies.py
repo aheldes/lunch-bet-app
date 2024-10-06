@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import json
 import logging
 
@@ -21,7 +22,7 @@ from exceptions.custom_exceptions import (
 from schemas import RoomCreate, RoomResponse, RoomUserResponse
 
 from .cache import CacheKeyGenerator, get_cache, invalidate_cache, set_cache
-from .enums import AdminApprovalStatus, UserType
+from .enums import AdminApprovalStatus, RoomMessageTypes, UserType
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -266,3 +267,32 @@ async def approve_user(
     )
 
     return user_to_approve
+
+
+async def log_action_to_redis(
+    room_id: str, user_id: str, action_type: RoomMessageTypes, message: str
+):
+    """Logs action to redis for a specific room."""
+    async for redis in get_redis():
+        action_log = {
+            "user_id": user_id,
+            "action": action_type.value,
+            "timestamp": datetime.now(tz=timezone.utc).isoformat(),
+            "message": message,
+        }
+        await redis.rpush(  # type: ignore
+            f"room:{room_id}:actions", json.dumps(action_log)
+        )
+
+
+async def fetch_actions_from_redis(room_id: str):
+    """Fetches actions from redis for a specific room."""
+    async for redis in get_redis():
+        actions = await redis.lrange(f"room:{room_id}:actions", 0, -1)  # type: ignore
+        return [json.loads(action) for action in actions]
+
+
+async def remove_actions_from_redis(room_id: str):
+    """Removes actions from redis for a specific room."""
+    async for redis in get_redis():
+        await redis.delete(f"room:{room_id}:actions")

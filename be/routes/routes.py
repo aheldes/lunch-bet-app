@@ -6,6 +6,7 @@ from schemas import RoomResponse, RoomUserResponse
 from dependencies import (
     approve_user,
     create_room_dependency,
+    fetch_actions_from_redis,
     get_all_rooms,
     get_room_users,
     join_room_dependency,
@@ -13,6 +14,13 @@ from dependencies import (
 
 
 router = APIRouter()
+
+
+@router.get("/rooms/{room_id}/actions")
+async def get_actions(room_id: str):
+    """Gets list of all actions for a room."""
+    actions = await fetch_actions_from_redis(room_id)
+    return actions
 
 
 @router.get("/rooms")

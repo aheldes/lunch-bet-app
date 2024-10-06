@@ -1,7 +1,10 @@
 import asyncio
+import logging
 
 import redis.asyncio as redis
 from fastapi import WebSocket
+
+logger = logging.getLogger("uvicorn.error")
 
 
 class RedisPubSubManager:
@@ -20,14 +23,17 @@ class RedisPubSubManager:
 
     async def publish(self, channel: str, message: str) -> None:
         """Publishes a message to a specific Redis channel."""
+        logger.info("Publishing message - %s - to channel: %s", message, channel)
         await self.redis_connection.publish(channel, message)
 
     async def subscribe(self, channel: str):
         """Subscribes to a Redis channel."""
+        logger.info("Subscribing to channel: %s", channel)
         await self.pubsub.subscribe(channel)
 
     async def unsubscribe(self, channel: str) -> None:
         """Unsubscribes from a Redis channel."""
+        logger.info("Unsubscribing to channel: %s", channel)
         await self.pubsub.unsubscribe(channel)
 
 
@@ -57,10 +63,15 @@ class WebSocketManager:
 
     async def remove_user(self, channel: str, websocket: WebSocket) -> None:
         """Removes a user's WebSocket connection from a channel."""
+        logger.info("Removing user from channel: %s", channel)
         if channel in self.channels and websocket in self.channels[channel]:
+            logger.info("Socket found, removing.")
             self.channels[channel].remove(websocket)
 
             if not self.channels[channel]:
+                logger.info(
+                    "Socket was last in channel, removing channel and unsubscribing."
+                )
                 del self.channels[channel]
                 await self.pubsub_client.unsubscribe(channel)
 
@@ -69,13 +80,17 @@ class WebSocketManager:
         pubsub = self.pubsub_client.pubsub
         while True:
             message = await pubsub.get_message(ignore_subscribe_messages=True)
-            if message:
-                channel = message["channel"].decode("utf-8")
-                if channel in self.channels:
-                    data = message["data"].decode("utf-8")
-                    all_sockets = self.channels[channel]
-                    for socket in all_sockets:
-                        await socket.send_text(data)
+            if not message:
+                continue
+
+            channel = message["channel"].decode("utf-8")
+            if channel not in self.channels:
+                continue
+
+            data = message["data"].decode("utf-8")
+            all_sockets = self.channels[channel]
+            for socket in all_sockets:
+                await socket.send_text(data)
             await asyncio.sleep(0.01)
 
 

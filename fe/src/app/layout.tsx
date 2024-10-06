@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
 import RootProvider from './rootProvider'
-import CustomAvatar from '@/components/other/CustomAvatar'
+import CustomAvatar from '@/components/other/Avatar/UserAvatar'
 import { Toaster } from '@/components/ui/toaster'
+import { Toaster as ToasterSooner } from '@/components/ui/sonner'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -32,11 +33,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <RootProvider>
-          <header className="sticky top-0 z-30 flex justify-end flex h-16 border-0 p-4 h-auto">
+          <header className="top-0 z-30 justify-end flex h-16 border-0 p-4">
             <CustomAvatar />
           </header>
           {children}
           <Toaster />
+          <ToasterSooner />
         </RootProvider>
       </body>
     </html>

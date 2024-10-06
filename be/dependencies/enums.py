@@ -13,3 +13,10 @@ class AdminApprovalStatus(Enum):
 
     APPROVE = "approve"
     REJECTE = "reject"
+
+
+class RoomMessageTypes(Enum):
+    """Enum for room message types."""
+
+    JOIN = "join"
+    LEAVE = "leave"

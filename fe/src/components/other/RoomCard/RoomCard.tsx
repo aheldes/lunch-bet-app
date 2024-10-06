@@ -7,16 +7,11 @@ import {
   TooltipContent,
 } from '@/components/ui/tooltip'
 import { ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 
 import type { Room } from '@/types'
 
-type RoomCardProps = Omit<Room, 'id'>
-
-const RoomCard: React.FC<RoomCardProps> = ({
-  name,
-  created_by,
-  created_at,
-}) => {
+const RoomCard: React.FC<Room> = ({ id, name, created_by, created_at }) => {
   return (
     <Card>
       <CardHeader>{name}</CardHeader>
@@ -28,9 +23,11 @@ const RoomCard: React.FC<RoomCardProps> = ({
         <CardFooter className="flex justify-end">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="icon">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              <Link href={`/room/${id}`} passHref>
+                <Button variant="outline" size="icon">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </TooltipTrigger>
             <TooltipContent>
               <p>Go to room</p>
