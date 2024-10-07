@@ -6,6 +6,7 @@ import GameStateTitle from './GameStateTitle'
 import GameStartButton from './GameStartButton'
 import GameEvaluateButton from './GameEvaluateButton'
 import BetDialog from './BetDialog'
+import ResultDialog from './ResultDialog'
 import { GameState } from '@/types'
 
 const Game: React.FC = () => {
@@ -38,15 +39,17 @@ const Game: React.FC = () => {
       content = <div>Error: Unknown game state.</div>
   }
   return (
-    <div className="grid grid-cols-5 gap-2">
-      <div className="col-span-4">
-        <GameStateTitle title={title} />
-        {content}
+    <>
+      <div className="grid grid-cols-5 gap-2">
+        <div className="col-span-4">
+          <GameStateTitle title={title} />
+          {content}
+        </div>
+        <GameEvaluateButton />
+        <PricesPanel />
       </div>
-      <GameEvaluateButton />
-
-      <PricesPanel />
-    </div>
+      <ResultDialog />
+    </>
   )
 }
 

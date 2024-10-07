@@ -13,6 +13,8 @@ export type RoomContextType = {
   prices: Price[]
   messageHandler: (message: string) => void
   sendJsonMessage: (message: any) => void
+  result: string | null
+  clearResult: () => void
 }
 
 export const RoomContext = createContext<RoomContextType | undefined>(undefined)
@@ -29,6 +31,8 @@ export const RoomProvider: React.FC<{
     priceSet,
     prices,
     betSet,
+    result,
+    clearResult,
   } = useRoom(room_id)
   const { sendJsonMessage } = useWebSocketRooms(room_id, messageHandler)
 
@@ -42,6 +46,8 @@ export const RoomProvider: React.FC<{
     prices,
     messageHandler,
     sendJsonMessage,
+    result,
+    clearResult,
   }
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>

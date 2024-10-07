@@ -25,12 +25,26 @@ const useRoom = (room_id: string) => {
   const [betSet, setBetSet] = useState<boolean>(false)
   const [prices, setPrices] = useState<Price[]>([])
   const [bets, setBets] = useState<string[]>([])
+  const [result, setResult] = useState<string | null>(null)
 
   const { data, isLoading, isError } = useQuery<Action[]>({
     queryKey: ['room', room_id],
     queryFn: () => fetchActions(room_id),
     staleTime: 5000,
   })
+
+  const resetGame = () => {
+    setGameState(GameState.IDLE)
+    setBetSet(false)
+    setPriceSet(false)
+    setEventHistory([])
+    setBets([])
+    setPrices([])
+  }
+
+  const clearResult = () => {
+    setResult('')
+  }
 
   const handleMessage = (data: RoomEventMessage, timestamp?: Date) => {
     // This check is needed as sometimes happened that WS connection got established before the data was fetched
@@ -109,6 +123,9 @@ const useRoom = (room_id: string) => {
           setBetSet(true)
         }
         setBets((prevBets) => [...[data.user_id], ...prevBets])
+      case RoomEventTypes.RESULT:
+        resetGame()
+        setResult(data.message)
       default:
         console.error('Unknown message type:', data)
     }
@@ -159,6 +176,8 @@ const useRoom = (room_id: string) => {
     priceSet,
     prices,
     betSet,
+    result,
+    clearResult,
   }
 }
 

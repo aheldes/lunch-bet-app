@@ -8,6 +8,7 @@ const actionTypeMap: { [key: string]: RoomEventTypes } = {
   game_end: RoomEventTypes.GAME_END,
   set_price: RoomEventTypes.SET_PRICE,
   set_bet: RoomEventTypes.SET_BET,
+  result: RoomEventTypes.RESULT,
 }
 
 const currencyMap: { [key: string]: Currency } = {
