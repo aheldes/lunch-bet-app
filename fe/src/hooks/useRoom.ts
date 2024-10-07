@@ -5,10 +5,10 @@ import { fetchActions } from '@/api/api'
 import { toast } from 'sonner'
 
 import type { Action, Event } from '@/types'
-import { ActionTypes } from '@/types'
+import { RoomEventTypes } from '@/types'
 
-type RoomMessage = {
-  type: ActionTypes
+type RoomEventMessage = {
+  type: RoomEventTypes
   user_id: string
   message: string
 }
@@ -22,7 +22,7 @@ const useRoom = (room_id: string) => {
     staleTime: 5000,
   })
 
-  const handleMessage = (data: RoomMessage, timestamp?: Date) => {
+  const handleMessage = (data: RoomEventMessage, timestamp?: Date) => {
     // This check is needed as sometimes happened that WS connection got established before the data was fetched
     // and logged new event into redis and then rest fetched events including this one.
     if (
@@ -43,14 +43,14 @@ const useRoom = (room_id: string) => {
     ])
 
     switch (data.type) {
-      case ActionTypes.JOIN:
+      case RoomEventTypes.JOIN:
         setUsers((prevUsers) => [...[data.user_id], ...prevUsers])
         toast('User Joined', {
           description: data.message,
         })
         break
 
-      case ActionTypes.LEAVE:
+      case RoomEventTypes.LEAVE:
         setUsers((prevUsers) =>
           prevUsers.filter((user) => user !== data.user_id)
         )
@@ -66,7 +66,7 @@ const useRoom = (room_id: string) => {
 
   const messageHandler = (message: string) => {
     try {
-      const data: RoomMessage = JSON.parse(message)
+      const data: RoomEventMessage = JSON.parse(message)
       handleMessage(data)
     } catch (error) {
       console.error('Failed to parse message:', error)
@@ -76,8 +76,8 @@ const useRoom = (room_id: string) => {
   useEffect(() => {
     if (data) {
       data.forEach((action) => {
-        const parsedAction: RoomMessage = {
-          type: action.action as ActionTypes,
+        const parsedAction: RoomEventMessage = {
+          type: action.action as RoomEventTypes,
           user_id: action.user_id,
           message: action.message,
         }

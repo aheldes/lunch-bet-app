@@ -22,7 +22,7 @@ from exceptions.custom_exceptions import (
 from schemas import RoomCreate, RoomResponse, RoomUserResponse
 
 from .cache import CacheKeyGenerator, get_cache, invalidate_cache, set_cache
-from .enums import AdminApprovalStatus, RoomMessageTypes, UserType
+from .enums import AdminApprovalStatus, RoomEventTypes, UserType
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -270,7 +270,7 @@ async def approve_user(
 
 
 async def log_action_to_redis(
-    room_id: str, user_id: str, action_type: RoomMessageTypes, message: str
+    room_id: str, user_id: str, action_type: RoomEventTypes, message: str
 ):
     """Logs action to redis for a specific room."""
     async for redis in get_redis():

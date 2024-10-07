@@ -4,10 +4,10 @@ import json
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from dependencies import create_user, log_action_to_redis
-from dependencies.enums import RoomMessageTypes
+from dependencies.enums import RoomEventTypes
 
 from websocket import socket_manager
-from websocket.helpers import RoomMessageGenerator
+from websocket.helpers import RoomEventMessageGenerator
 
 router = APIRouter()
 
@@ -35,13 +35,13 @@ async def websocket_room(websocket: WebSocket, room_id: str, user_id: str):
 
     await create_user(user_id)
 
-    message = RoomMessageGenerator.generate_join_message(user_id)
+    message = RoomEventMessageGenerator.generate_join_message(user_id)
 
     await socket_manager.broadcast(
         channel,
         json.dumps(
             {
-                "type": RoomMessageTypes.JOIN.value,
+                "type": RoomEventTypes.JOIN.value,
                 "user_id": user_id,
                 "message": message,
             }
@@ -52,7 +52,7 @@ async def websocket_room(websocket: WebSocket, room_id: str, user_id: str):
         room_id=room_id,
         user_id=user_id,
         message=message,
-        action_type=RoomMessageTypes.JOIN,
+        action_type=RoomEventTypes.JOIN,
     )
 
     try:
@@ -61,13 +61,13 @@ async def websocket_room(websocket: WebSocket, room_id: str, user_id: str):
     except WebSocketDisconnect:
         await socket_manager.remove_user(channel, websocket)
 
-        message = RoomMessageGenerator.generate_leave_message(user_id)
+        message = RoomEventMessageGenerator.generate_leave_message(user_id)
 
         await socket_manager.broadcast(
             channel,
             json.dumps(
                 {
-                    "type": RoomMessageTypes.LEAVE.value,
+                    "type": RoomEventTypes.LEAVE.value,
                     "user_id": user_id,
                     "message": message,
                 }
@@ -78,5 +78,5 @@ async def websocket_room(websocket: WebSocket, room_id: str, user_id: str):
             room_id=room_id,
             user_id=user_id,
             message=message,
-            action_type=RoomMessageTypes.LEAVE,
+            action_type=RoomEventTypes.LEAVE,
         )

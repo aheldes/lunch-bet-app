@@ -1,4 +1,4 @@
-class RoomMessageGenerator:
+class RoomEventMessageGenerator:
     """Helper class for generation of event messages."""
 
     @staticmethod

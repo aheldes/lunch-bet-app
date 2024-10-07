@@ -15,8 +15,8 @@ class AdminApprovalStatus(Enum):
     REJECTE = "reject"
 
 
-class RoomMessageTypes(Enum):
-    """Enum for room message types."""
+class RoomEventTypes(Enum):
+    """Enum for room event types."""
 
     JOIN = "join"
     LEAVE = "leave"

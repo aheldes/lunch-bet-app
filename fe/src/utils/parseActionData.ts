@@ -1,19 +1,19 @@
 import type { Action, ActionResponse } from '@/types'
-import { ActionTypes } from '@/types'
+import { RoomEventTypes } from '@/types'
 
-const actionTypeMap: { [key: string]: ActionTypes } = {
-  join: ActionTypes.JOIN,
-  leave: ActionTypes.LEAVE,
+const actionTypeMap: { [key: string]: RoomEventTypes } = {
+  join: RoomEventTypes.JOIN,
+  leave: RoomEventTypes.LEAVE,
 }
 
 const parseActionData = (actionData: ActionResponse[]): Action[] => {
   return actionData.map((action) => {
-    let actionType: ActionTypes
+    let actionType: RoomEventTypes
 
     if (action.action in actionTypeMap) {
       actionType = actionTypeMap[action.action]
     } else {
-      actionType = ActionTypes.ERROR
+      actionType = RoomEventTypes.ERROR
       console.warn(`Unknown action type: ${action.action}`)
     }
 
