@@ -30,8 +30,8 @@ const Game: React.FC = () => {
       content = <BetDialog />
       break
     case GameState.BETS_SET:
-      title = 'Evaluating'
-      content = <div>...</div>
+      title = 'Evaluate'
+      content = <GameEvaluateButton />
       break
 
     default:
@@ -45,7 +45,6 @@ const Game: React.FC = () => {
           <GameStateTitle title={title} />
           {content}
         </div>
-        <GameEvaluateButton />
         <PricesPanel />
       </div>
       <ResultDialog />
