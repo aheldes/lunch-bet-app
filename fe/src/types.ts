@@ -1,4 +1,4 @@
-export enum ActionTypes {
+export enum RoomEventTypes {
   JOIN = 'join',
   LEAVE = 'leave',
   ERROR = 'error',
@@ -13,7 +13,7 @@ export type ActionResponse = {
 
 export type Action = {
   user_id: string
-  action: ActionTypes
+  action: RoomEventTypes
   timestamp: Date
   message: string
 }
