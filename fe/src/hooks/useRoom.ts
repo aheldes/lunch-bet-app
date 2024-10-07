@@ -5,7 +5,7 @@ import { fetchActions } from '@/api/api'
 import { toast } from 'sonner'
 
 import type { Action, Currency, Event, Price } from '@/types'
-import { RoomEventTypes } from '@/types'
+import { GameState, RoomEventTypes } from '@/types'
 import useUUIDContext from './useUUIDContext'
 
 type RoomEventMessage = {
@@ -20,10 +20,10 @@ const useRoom = (room_id: string) => {
   const { uuid } = useUUIDContext()
   const [users, setUsers] = useState<string[]>([])
   const [eventHistory, setEventHistory] = useState<Event[]>([])
-  const [gameStarted, setGameStarted] = useState<boolean>(false)
+  const [gameState, setGameState] = useState<GameState>(GameState.IDLE)
   const [priceSet, setPriceSet] = useState<boolean>(false)
   const [prices, setPrices] = useState<Price[]>([])
-  const gameReady = users.length === prices.length && users.length != 1
+
   const { data, isLoading, isError } = useQuery<Action[]>({
     queryKey: ['room', room_id],
     queryFn: () => fetchActions(room_id),
@@ -37,7 +37,8 @@ const useRoom = (room_id: string) => {
       eventHistory.some(
         (event) =>
           event.message === data.message &&
-          event.timestamp.getTime() === timestamp?.getTime()
+          Math.abs(event.timestamp.getTime() - (timestamp?.getTime() || 0)) <
+            1000
       )
     ) {
       return
@@ -71,13 +72,13 @@ const useRoom = (room_id: string) => {
         })
         break
       case RoomEventTypes.GAME_START:
-        setGameStarted(true)
+        setGameState(GameState.STARTED)
         toast('Game started', {
           description: data.message,
         })
         break
       case RoomEventTypes.GAME_END:
-        setGameStarted(false)
+        setGameState(GameState.IDLE)
         toast('Game ended', {
           description: data.message,
         })
@@ -133,7 +134,13 @@ const useRoom = (room_id: string) => {
     }
   }, [data])
 
-  return { eventHistory, users, messageHandler, gameStarted, priceSet, prices }
+  useEffect(() => {
+    if (users.length === prices.length && users.length > 1) {
+      setGameState(GameState.PRICES_SET)
+    }
+  }, [users, prices])
+
+  return { eventHistory, users, messageHandler, gameState, priceSet, prices }
 }
 
 export default useRoom

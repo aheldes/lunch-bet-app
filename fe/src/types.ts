@@ -13,6 +13,13 @@ export enum Currency {
   USD = 'usd',
 }
 
+export enum GameState {
+  IDLE = 'idle',
+  STARTED = 'started',
+  PRICES_SET = 'pricesSet',
+  BETS_SET = 'betsSet',
+}
+
 export type ActionResponse = {
   user_id: string
   action: string
