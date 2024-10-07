@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import json
 import logging
+from typing import Optional
 
 from fastapi import Depends
 from redis.asyncio import Redis
@@ -270,15 +271,23 @@ async def approve_user(
 
 
 async def log_action_to_redis(
-    room_id: str, user_id: str, action_type: RoomEventTypes, message: str
+    room_id: str,
+    user_id: str,
+    action_type: RoomEventTypes,
+    message: str,
+    addition: Optional[dict] = None,
 ):
     """Logs action to redis for a specific room."""
+    if addition is None:
+        addition = {}
+
     async for redis in get_redis():
         action_log = {
             "user_id": user_id,
             "action": action_type.value,
             "timestamp": datetime.now(tz=timezone.utc).isoformat(),
             "message": message,
+            **addition,
         }
         await redis.rpush(  # type: ignore
             f"room:{room_id}:actions", json.dumps(action_log)
@@ -289,6 +298,7 @@ async def fetch_actions_from_redis(room_id: str):
     """Fetches actions from redis for a specific room."""
     async for redis in get_redis():
         actions = await redis.lrange(f"room:{room_id}:actions", 0, -1)  # type: ignore
+        print(actions)
         return [json.loads(action) for action in actions]
 
 

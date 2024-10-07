@@ -22,6 +22,7 @@ class RoomEventTypes(Enum):
     LEAVE = "leave"
     GAME_START = "game_start"
     GAME_END = "game_end"
+    SET_PRICE = "set_price"
 
     @classmethod
     def get_event_type_from_string(cls, event_type_str: str) -> "RoomEventTypes":
@@ -30,3 +31,19 @@ class RoomEventTypes(Enum):
             return cls[event_type_str.upper()]
         except KeyError as exc:
             raise ValueError(f"Invalid event type: {event_type_str}") from exc
+
+
+class Currency(Enum):
+    """Enum for currencies."""
+
+    CZK = "czk"
+    EUR = "eur"
+    USD = "usd"
+
+    @classmethod
+    def get_currency_type_from_string(cls, currency_str: str) -> "Currency":
+        """Helper method to return Currency from string."""
+        try:
+            return cls[currency_str.upper()]
+        except KeyError as exc:
+            raise ValueError(f"Invalid event type: {currency_str}") from exc

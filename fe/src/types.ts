@@ -3,7 +3,14 @@ export enum RoomEventTypes {
   LEAVE = 'leave',
   GAME_START = 'game_start',
   GAME_END = 'game_end',
+  SET_PRICE = 'set_price',
   ERROR = 'error',
+}
+
+export enum Currency {
+  CZK = 'czk',
+  EUR = 'eur',
+  USD = 'usd',
 }
 
 export type ActionResponse = {
@@ -11,6 +18,8 @@ export type ActionResponse = {
   action: string
   timestamp: string
   message: string
+  price?: string
+  currency?: Currency
 }
 
 export type Action = {
@@ -18,6 +27,8 @@ export type Action = {
   action: RoomEventTypes
   timestamp: Date
   message: string
+  price?: string
+  currency?: Currency
 }
 
 export type Event = Omit<Action, 'user_id' | 'action'>
@@ -34,4 +45,10 @@ export type RoomResponse = {
   name: string
   created_by: string
   created_at: string
+}
+
+export type Price = {
+  price: string
+  currency: Currency
+  user_id: string
 }

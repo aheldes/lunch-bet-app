@@ -12,7 +12,8 @@ type BodyProps = {
 }
 
 const Body: React.FC<BodyProps> = ({ room_id }) => {
-  const { eventHistory, users, messageHandler, gameStarted } = useRoom(room_id)
+  const { eventHistory, users, messageHandler, gameStarted, priceSet, prices } =
+    useRoom(room_id)
   const { error, sendJsonMessage } = useWebSocketRooms(room_id, messageHandler)
 
   return (
@@ -21,7 +22,11 @@ const Body: React.FC<BodyProps> = ({ room_id }) => {
       <div className="grid grid-cols-12 gap-2 px-3 flex-1">
         <div className="col-span-7">
           {gameStarted ? (
-            <Game />
+            <Game
+              priceSet={priceSet}
+              prices={prices}
+              sendJsonMessage={sendJsonMessage}
+            />
           ) : (
             <GameStartButton sendJsonMessage={sendJsonMessage} />
           )}

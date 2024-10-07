@@ -2,7 +2,7 @@ import json
 from fastapi import WebSocket
 
 from dependencies import create_user, log_action_to_redis
-from dependencies.enums import RoomEventTypes
+from dependencies.enums import Currency, RoomEventTypes
 from websocket import socket_manager
 
 
@@ -29,6 +29,11 @@ class RoomEventMessageGenerator:
         """Generates game end message."""
         return f"User {user_id} ended the game."
 
+    @staticmethod
+    def generate_set_price_message(user_id: str, price: str, currency: Currency) -> str:
+        """Generates set price message."""
+        return f"User {user_id} set price to: {price} {currency.value}."
+
 
 class RoomEventHandler:
     """Handler class for handling ws events."""
@@ -49,11 +54,22 @@ class RoomEventHandler:
         event_type = RoomEventTypes.get_event_type_from_string(input_data["type"])
         user_id = input_data["user_id"]
 
+        addition = {}
+
         match event_type:
             case RoomEventTypes.GAME_START:
                 message = RoomEventMessageGenerator.generate_game_start_message(user_id)
             case RoomEventTypes.GAME_END:
                 message = RoomEventMessageGenerator.generate_game_end_message(user_id)
+            case RoomEventTypes.SET_PRICE:
+                price = input_data["price"]
+                currency = Currency.get_currency_type_from_string(
+                    input_data["currency"]
+                )
+                message = RoomEventMessageGenerator.generate_set_price_message(
+                    user_id, price, currency
+                )
+                addition = {"price": price, "currency": currency.value}
             case _:
                 raise NotImplementedError(
                     f"Event type {event_type} is not implemented."
@@ -66,6 +82,7 @@ class RoomEventHandler:
                     "type": event_type.value,
                     "user_id": user_id,
                     "message": message,
+                    **addition,
                 }
             ),
         )
@@ -75,6 +92,7 @@ class RoomEventHandler:
             user_id=user_id,
             message=message,
             action_type=event_type,
+            addition=addition,
         )
 
     async def handle_user_join_room(self) -> None:

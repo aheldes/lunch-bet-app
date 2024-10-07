@@ -4,19 +4,26 @@ import { fetchActions } from '@/api/api'
 
 import { toast } from 'sonner'
 
-import type { Action, Event } from '@/types'
+import type { Action, Currency, Event, Price } from '@/types'
 import { RoomEventTypes } from '@/types'
+import useUUIDContext from './useUUIDContext'
 
 type RoomEventMessage = {
   type: RoomEventTypes
   user_id: string
   message: string
+  price?: string
+  currency?: Currency
 }
 
 const useRoom = (room_id: string) => {
+  const { uuid } = useUUIDContext()
   const [users, setUsers] = useState<string[]>([])
   const [eventHistory, setEventHistory] = useState<Event[]>([])
   const [gameStarted, setGameStarted] = useState<boolean>(false)
+  const [priceSet, setPriceSet] = useState<boolean>(false)
+  const [prices, setPrices] = useState<Price[]>([])
+  const gameReady = users.length === prices.length && users.length != 1
   const { data, isLoading, isError } = useQuery<Action[]>({
     queryKey: ['room', room_id],
     queryFn: () => fetchActions(room_id),
@@ -50,16 +57,19 @@ const useRoom = (room_id: string) => {
           description: data.message,
         })
         break
-
       case RoomEventTypes.LEAVE:
         setUsers((prevUsers) =>
           prevUsers.filter((user) => user !== data.user_id)
+        )
+        setPrices((prevPrices) =>
+          prevPrices.filter(
+            (price) => price.user_id !== data.user_id || data.user_id === uuid
+          )
         )
         toast('User Left', {
           description: data.message,
         })
         break
-
       case RoomEventTypes.GAME_START:
         setGameStarted(true)
         toast('Game started', {
@@ -71,6 +81,26 @@ const useRoom = (room_id: string) => {
         toast('Game ended', {
           description: data.message,
         })
+        break
+      case RoomEventTypes.SET_PRICE:
+        if (data.user_id === uuid) {
+          setPriceSet(true) // Set priceSet to true when user already set price in the past
+        }
+        if (data.price !== undefined && data.currency !== undefined) {
+          const price = data.price
+          const currency = data.currency
+          setPrices((prevPrices) => [
+            {
+              price: price,
+              currency: currency,
+              user_id: data.user_id,
+            },
+            ...prevPrices,
+          ])
+        } else {
+          console.log('Unexpected error. Price or currency missing')
+        }
+
         break
 
       default:
@@ -94,6 +124,8 @@ const useRoom = (room_id: string) => {
           type: action.action as RoomEventTypes,
           user_id: action.user_id,
           message: action.message,
+          price: action.price,
+          currency: action.currency,
         }
 
         handleMessage(parsedAction, new Date(action.timestamp))
@@ -101,7 +133,7 @@ const useRoom = (room_id: string) => {
     }
   }, [data])
 
-  return { eventHistory, users, messageHandler, gameStarted }
+  return { eventHistory, users, messageHandler, gameStarted, priceSet, prices }
 }
 
 export default useRoom
