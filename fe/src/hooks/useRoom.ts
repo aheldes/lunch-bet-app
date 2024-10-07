@@ -123,9 +123,12 @@ const useRoom = (room_id: string) => {
           setBetSet(true)
         }
         setBets((prevBets) => [...[data.user_id], ...prevBets])
+        break
       case RoomEventTypes.RESULT:
+        console.log('here???')
         resetGame()
         setResult(data.message)
+        break
       default:
         console.error('Unknown message type:', data)
     }
