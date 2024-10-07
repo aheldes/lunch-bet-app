@@ -5,7 +5,12 @@ from typing import Optional
 from fastapi import WebSocket
 from pydantic import BaseModel
 
-from dependencies import create_user, fetch_actions_from_redis, log_action_to_redis
+from dependencies import (
+    create_user,
+    fetch_actions_from_redis,
+    log_action_to_redis,
+    remove_actions_from_redis,
+)
 from dependencies.enums import Currency, RoomEventTypes
 from websocket import socket_manager
 
@@ -42,6 +47,11 @@ class RoomEventMessageGenerator:
     def generate_set_bet_message(user_id: str) -> str:
         """Generates set bet message."""
         return f"User {user_id} set bet."
+
+    @staticmethod
+    def generate_result_message(user_id: str, amount: float) -> str:
+        """Generates result message."""
+        return f"User {user_id} lost and has to pay {amount} CZK."
 
 
 class RoomEventHandler:
@@ -93,7 +103,21 @@ class RoomEventHandler:
                 )
             case RoomEventTypes.EVALUATE:
                 evaluator = GameEvaluator(self.room_id)
-                await evaluator.evaluate()
+                loser_id, total_in_czk = await evaluator.evaluate()
+                message = RoomEventMessageGenerator.generate_result_message(
+                    loser_id, total_in_czk
+                )
+                await socket_manager.broadcast(
+                    self.channel,
+                    json.dumps(
+                        {
+                            "type": RoomEventTypes.RESULT.value,
+                            "user_id": user_id,
+                            "message": message,
+                        }
+                    ),
+                )
+                await remove_actions_from_redis(self.room_id)
                 return
             case _:
                 raise NotImplementedError(
@@ -264,6 +288,8 @@ class GameEvaluator:
         )
         print(f"Total Value in CZK: {total_value_czk}")
         print(f"Converted Prices: {converted_prices}")
+
+        return looser.user_id, total_value_czk
 
     async def fetch_bets_and_prices(self) -> tuple[list[Bet], list[Price]]:
         """Fetches bets and prices from redis actions."""

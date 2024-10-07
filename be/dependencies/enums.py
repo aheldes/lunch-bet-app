@@ -26,6 +26,7 @@ class RoomEventTypes(Enum):
     SET_BET = "set_bet"
     BET = "bet"  # this is internal
     EVALUATE = "evaluate"
+    RESULT = "result"
 
     @classmethod
     def get_event_type_from_string(cls, event_type_str: str) -> "RoomEventTypes":
