@@ -4,6 +4,7 @@ import PriceDialog from './PriceDialog'
 import PricesPanel from './PricesPanel'
 import GameStateTitle from './GameStateTitle'
 import GameStartButton from './GameStartButton'
+import GameEvaluateButton from './GameEvaluateButton'
 import BetDialog from './BetDialog'
 import { GameState } from '@/types'
 
@@ -42,6 +43,7 @@ const Game: React.FC = () => {
         <GameStateTitle title={title} />
         {content}
       </div>
+      <GameEvaluateButton />
 
       <PricesPanel />
     </div>
