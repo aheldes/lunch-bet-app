@@ -125,7 +125,6 @@ const useRoom = (room_id: string) => {
         setBets((prevBets) => [...[data.user_id], ...prevBets])
         break
       case RoomEventTypes.RESULT:
-        console.log('here???')
         resetGame()
         setResult(data.message)
         break
