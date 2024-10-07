@@ -1,17 +1,14 @@
 'use client'
 import useUUIDContext from '@/hooks/useUUIDContext'
+import useRoomContext from '@/hooks/useRoomContext'
+
 import { Button } from '@/components/ui/button'
-import type { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
+
 import { RoomEventTypes } from '@/types'
 
-type GameStartButtonProps = {
-  sendJsonMessage: SendJsonMessage
-}
-
-const GameStartButton: React.FC<GameStartButtonProps> = ({
-  sendJsonMessage,
-}) => {
+const GameStartButton: React.FC = () => {
   const { uuid } = useUUIDContext()
+  const { sendJsonMessage } = useRoomContext()
   const onStartGame = () => {
     if (!uuid) return
     const message = {

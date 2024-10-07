@@ -1,12 +1,10 @@
+import useRoomContext from '@/hooks/useRoomContext'
+
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Avatar } from '@/components/other/Avatar'
-import { Price } from '@/types'
 
-type PricesPanel = {
-  prices: Price[]
-}
-
-const PricesPanel: React.FC<PricesPanel> = ({ prices }) => {
+const PricesPanel: React.FC = () => {
+  const { prices } = useRoomContext()
   return (
     <Card className={`flex flex-col items-center`}>
       <CardHeader>Prices</CardHeader>

@@ -1,3 +1,5 @@
+import useRoomContext from '@/hooks/useRoomContext'
+
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Avatar } from '@/components/other/Avatar/'
 import {
@@ -8,11 +10,11 @@ import {
 } from '@radix-ui/react-tooltip'
 
 type UserPanelProps = {
-  users: string[]
   className?: string
 }
 
-const UserPanel: React.FC<UserPanelProps> = ({ users, className }) => {
+const UserPanel: React.FC<UserPanelProps> = ({ className }) => {
+  const { users } = useRoomContext()
   return (
     <Card className={`flex flex-col items-center ${className}`}>
       <CardHeader>Active users</CardHeader>

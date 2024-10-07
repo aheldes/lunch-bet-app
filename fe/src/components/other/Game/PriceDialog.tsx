@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import useUUIDContext from '@/hooks/useUUIDContext'
+import useRoomContext from '@/hooks/useRoomContext'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -33,7 +35,6 @@ import {
 
 import { Currency, RoomEventTypes } from '@/types'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
-import useUUIDContext from '@/hooks/useUUIDContext'
 
 const schema = z
   .object({
@@ -62,16 +63,9 @@ const schema = z
 
 type FormData = z.infer<typeof schema>
 
-type PriceDialogProps = {
-  priceSet: boolean
-  sendJsonMessage: SendJsonMessage
-}
-
-const PriceDialog: React.FC<PriceDialogProps> = ({
-  priceSet,
-  sendJsonMessage,
-}) => {
+const PriceDialog: React.FC = () => {
   const { uuid } = useUUIDContext()
+  const { priceSet, sendJsonMessage } = useRoomContext()
   const [open, setOpen] = useState(false)
 
   const form = useForm<FormData>({
