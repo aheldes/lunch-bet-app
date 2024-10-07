@@ -4,6 +4,7 @@ export enum RoomEventTypes {
   GAME_START = 'game_start',
   GAME_END = 'game_end',
   SET_PRICE = 'set_price',
+  SET_BET = 'set_bet',
   ERROR = 'error',
 }
 

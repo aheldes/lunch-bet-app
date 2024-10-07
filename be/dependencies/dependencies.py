@@ -295,11 +295,15 @@ async def log_action_to_redis(
 
 
 async def fetch_actions_from_redis(room_id: str):
-    """Fetches actions from redis for a specific room."""
+    """Fetches actions from Redis for a specific room, filtering out 'bet' actions."""
     async for redis in get_redis():
         actions = await redis.lrange(f"room:{room_id}:actions", 0, -1)  # type: ignore
-        print(actions)
-        return [json.loads(action) for action in actions]
+        actions = [json.loads(action) for action in actions]
+
+        filtered_actions = [
+            action for action in actions if action.get("action") != "bet"
+        ]
+        return filtered_actions
 
 
 async def remove_actions_from_redis(room_id: str):

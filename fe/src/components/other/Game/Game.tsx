@@ -4,6 +4,7 @@ import PriceDialog from './PriceDialog'
 import PricesPanel from './PricesPanel'
 import GameStateTitle from './GameStateTitle'
 import GameStartButton from './GameStartButton'
+import BetDialog from './BetDialog'
 import { GameState } from '@/types'
 
 const Game: React.FC = () => {
@@ -24,11 +25,11 @@ const Game: React.FC = () => {
 
     case GameState.PRICES_SET:
       title = 'Set Bets'
-      content = <div>Set Bets</div>
+      content = <BetDialog />
       break
     case GameState.BETS_SET:
-      title = 'Evaluate'
-      content = <div>Eval</div>
+      title = 'Evaluating'
+      content = <div>...</div>
       break
 
     default:

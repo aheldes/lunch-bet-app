@@ -22,7 +22,9 @@ const useRoom = (room_id: string) => {
   const [eventHistory, setEventHistory] = useState<Event[]>([])
   const [gameState, setGameState] = useState<GameState>(GameState.IDLE)
   const [priceSet, setPriceSet] = useState<boolean>(false)
+  const [betSet, setBetSet] = useState<boolean>(false)
   const [prices, setPrices] = useState<Price[]>([])
+  const [bets, setBets] = useState<string[]>([])
 
   const { data, isLoading, isError } = useQuery<Action[]>({
     queryKey: ['room', room_id],
@@ -101,9 +103,12 @@ const useRoom = (room_id: string) => {
         } else {
           console.log('Unexpected error. Price or currency missing')
         }
-
         break
-
+      case RoomEventTypes.SET_BET:
+        if (data.user_id === uuid) {
+          setBetSet(true)
+        }
+        setBets((prevBets) => [...[data.user_id], ...prevBets])
       default:
         console.error('Unknown message type:', data)
     }
@@ -140,7 +145,21 @@ const useRoom = (room_id: string) => {
     }
   }, [users, prices])
 
-  return { eventHistory, users, messageHandler, gameState, priceSet, prices }
+  useEffect(() => {
+    if (users.length === bets.length && users.length > 1) {
+      setGameState(GameState.BETS_SET)
+    }
+  }, [users, bets])
+
+  return {
+    eventHistory,
+    users,
+    messageHandler,
+    gameState,
+    priceSet,
+    prices,
+    betSet,
+  }
 }
 
 export default useRoom

@@ -9,6 +9,7 @@ export type RoomContextType = {
   users: string[]
   gameState: GameState
   priceSet: boolean
+  betSet: boolean
   prices: Price[]
   messageHandler: (message: string) => void
   sendJsonMessage: (message: any) => void
@@ -20,8 +21,15 @@ export const RoomProvider: React.FC<{
   room_id: string
   children: React.ReactNode
 }> = ({ room_id, children }) => {
-  const { eventHistory, users, messageHandler, gameState, priceSet, prices } =
-    useRoom(room_id)
+  const {
+    eventHistory,
+    users,
+    messageHandler,
+    gameState,
+    priceSet,
+    prices,
+    betSet,
+  } = useRoom(room_id)
   const { sendJsonMessage } = useWebSocketRooms(room_id, messageHandler)
 
   const value = {
@@ -30,6 +38,7 @@ export const RoomProvider: React.FC<{
     users,
     gameState,
     priceSet,
+    betSet,
     prices,
     messageHandler,
     sendJsonMessage,

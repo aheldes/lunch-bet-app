@@ -34,6 +34,11 @@ class RoomEventMessageGenerator:
         """Generates set price message."""
         return f"User {user_id} set price to: {price} {currency.value}."
 
+    @staticmethod
+    def generate_set_bet_message(user_id: str) -> str:
+        """Generates set bet message."""
+        return f"User {user_id} set bet."
+
 
 class RoomEventHandler:
     """Handler class for handling ws events."""
@@ -70,6 +75,18 @@ class RoomEventHandler:
                     user_id, price, currency
                 )
                 addition = {"price": price, "currency": currency.value}
+            case RoomEventTypes.SET_BET:
+                message = RoomEventMessageGenerator.generate_set_bet_message(user_id)
+
+                # Log action again so on frontend the bet is not visible to other users.
+                await log_action_to_redis(
+                    room_id=self.room_id,
+                    user_id=user_id,
+                    message=message,
+                    action_type=RoomEventTypes.BET,
+                    addition={"bet": input_data["bet"]},
+                )
+
             case _:
                 raise NotImplementedError(
                     f"Event type {event_type} is not implemented."

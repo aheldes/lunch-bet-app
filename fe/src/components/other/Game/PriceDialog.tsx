@@ -34,7 +34,6 @@ import {
 } from '@/components/ui/select'
 
 import { Currency, RoomEventTypes } from '@/types'
-import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 
 const schema = z
   .object({
