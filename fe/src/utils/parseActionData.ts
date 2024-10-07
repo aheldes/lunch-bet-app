@@ -4,6 +4,8 @@ import { RoomEventTypes } from '@/types'
 const actionTypeMap: { [key: string]: RoomEventTypes } = {
   join: RoomEventTypes.JOIN,
   leave: RoomEventTypes.LEAVE,
+  game_start: RoomEventTypes.GAME_START,
+  game_end: RoomEventTypes.GAME_END,
 }
 
 const parseActionData = (actionData: ActionResponse[]): Action[] => {
