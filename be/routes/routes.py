@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 
 from models import Room, RoomUser
 from schemas import RoomResponse, RoomUserResponse
-from dependencies import (
+from dependencies.dependencies import (
     approve_user,
     create_room_dependency,
     fetch_actions_from_redis,

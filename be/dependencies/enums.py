@@ -1,6 +1,14 @@
 from enum import Enum
 
 
+class ApprovalStatus(Enum):
+    """User approval status."""
+
+    APPROVED = "approved"
+    PENDING = "pending"
+    REJECTED = "rejected"
+
+
 class UserType(Enum):
     """Enum for user types of a room."""
 

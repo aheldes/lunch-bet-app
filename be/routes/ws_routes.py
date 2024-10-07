@@ -2,7 +2,7 @@ import asyncio
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from dependencies import create_user
+from dependencies.dependencies import create_user
 
 from websocket import socket_manager
 from websocket.helpers import RoomEventHandler

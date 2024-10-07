@@ -1,18 +1,19 @@
 import asyncio
 import json
 import random
-from typing import Optional
 from fastapi import WebSocket
-from pydantic import BaseModel
 
-from dependencies import (
+
+from dependencies.dependencies import (
     create_user,
     fetch_actions_from_redis,
     log_action_to_redis,
     remove_actions_from_redis,
 )
 from dependencies.enums import Currency, RoomEventTypes
+from models.models import Game
 from websocket import socket_manager
+from websocket.models import Bet, ConvertedPrice, Price
 
 
 class RoomEventMessageGenerator:
@@ -68,7 +69,6 @@ class RoomEventHandler:
         try:
             input_data = json.loads(data)
         except json.JSONDecodeError as e:
-            print("here?")
             raise ValueError(f"Invalid input format: {e}") from e
 
         event_type = RoomEventTypes.get_event_type_from_string(input_data["type"])
@@ -103,9 +103,10 @@ class RoomEventHandler:
                 )
             case RoomEventTypes.EVALUATE:
                 evaluator = GameEvaluator(self.room_id)
-                loser_id, total_in_czk = await evaluator.evaluate()
+                looser, converted_prices = await evaluator.evaluate()
+                total_in_czk = await ConvertedPrice.calculate_totals(converted_prices)
                 message = RoomEventMessageGenerator.generate_result_message(
-                    loser_id, total_in_czk
+                    looser.user_id, total_in_czk
                 )
                 await socket_manager.broadcast(
                     self.channel,
@@ -118,6 +119,13 @@ class RoomEventHandler:
                     ),
                 )
                 await remove_actions_from_redis(self.room_id)
+
+                await Game.create_game_with_prices(
+                    room_id=self.room_id,
+                    loser_id=looser.user_id,
+                    converted_prices=converted_prices,
+                    total_in_czk=total_in_czk,
+                )
                 return
             case _:
                 raise NotImplementedError(
@@ -195,31 +203,6 @@ class RoomEventHandler:
         )
 
 
-class Bet(BaseModel):
-    """Data class for bets from redis."""
-
-    bet: int
-    user_id: str
-
-
-class Price(BaseModel):
-    """Data class for prices from redis."""
-
-    price: float
-    currency: str
-    user_id: str
-
-
-class ConvertedPrice(BaseModel):
-    """Data class for converted prices."""
-
-    user_id: str
-    original_price: float
-    original_currency: str
-    conversion_rate: Optional[float] = None
-    price_in_czk: float
-
-
 class CurrencyConverter:
     """Class for converting for calculating total value in czk."""
 
@@ -241,24 +224,10 @@ class CurrencyConverter:
         return ConvertedPrice(
             user_id=price.user_id,
             original_price=price.price,
-            original_currency=price.currency,
+            original_currency=Currency.get_currency_type_from_string(price.currency),
             price_in_czk=price_in_czk,
             conversion_rate=conversion_rate,
         )
-
-    def calculate_total_in_czk(
-        self, prices: list[Price]
-    ) -> tuple[float, list[ConvertedPrice]]:
-        """Calculates the total value in CZK and returns a list of converted prices."""
-        total_value_in_czk: float = 0.0
-        converted_prices: list[ConvertedPrice] = []
-
-        for price in prices:
-            converted_price = self.convert_to_czk(price)
-            total_value_in_czk += converted_price.price_in_czk
-            converted_prices.append(converted_price)
-
-        return total_value_in_czk, converted_prices
 
 
 class GameEvaluator:
@@ -283,13 +252,10 @@ class GameEvaluator:
         looser = self.calculate_furthest_from_number(bets, random_number)
         print(f"Looser: {looser}")
 
-        total_value_czk, converted_prices = self.converter.calculate_total_in_czk(
-            prices
-        )
-        print(f"Total Value in CZK: {total_value_czk}")
+        converted_prices = [self.converter.convert_to_czk(price) for price in prices]
         print(f"Converted Prices: {converted_prices}")
 
-        return looser.user_id, total_value_czk
+        return looser, converted_prices
 
     async def fetch_bets_and_prices(self) -> tuple[list[Bet], list[Price]]:
         """Fetches bets and prices from redis actions."""
@@ -318,14 +284,9 @@ class GameEvaluator:
         return random.randint(1, 10000)
 
     @staticmethod
-    def calculate_furthest_from_number(
-        bets: list[Bet], random_number: int
-    ) -> Optional[Bet]:
+    def calculate_furthest_from_number(bets: list[Bet], random_number: int) -> Bet:
         """Calculates the user whose bet is furthest from the generated number.
         If there is a tie, picks one randomly."""
-        if not bets:
-            return None
-
         furthest_bets = sorted(
             bets, key=lambda bet: abs(bet.bet - random_number), reverse=True
         )

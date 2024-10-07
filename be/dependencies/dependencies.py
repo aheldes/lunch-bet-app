@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from database import get_session, get_redis
-from models.models import ApprovalStatus, Room, RoomUser, User
+from models.models import Room, RoomUser, User
 from exceptions.custom_exceptions import (
     RoomNameNotUniqueError,
     RoomNotFoundError,
@@ -23,7 +23,7 @@ from exceptions.custom_exceptions import (
 from schemas import RoomCreate, RoomResponse, RoomUserResponse
 
 from .cache import CacheKeyGenerator, get_cache, invalidate_cache, set_cache
-from .enums import AdminApprovalStatus, RoomEventTypes, UserType
+from .enums import AdminApprovalStatus, ApprovalStatus, RoomEventTypes, UserType
 
 logger = logging.getLogger("uvicorn.error")
 
