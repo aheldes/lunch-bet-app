@@ -1,6 +1,8 @@
 export enum RoomEventTypes {
   JOIN = 'join',
   LEAVE = 'leave',
+  GAME_START = 'game_start',
+  GAME_END = 'game_end',
   ERROR = 'error',
 }
 

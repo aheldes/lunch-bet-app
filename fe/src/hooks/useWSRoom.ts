@@ -12,14 +12,14 @@ const useWebSocketRoom = (
   const { uuid } = useUUIDContext()
   const [error, setError] = useState<boolean>(false)
 
-  const _ = useWebSocket(`${URL}/${room_id}/${uuid}`, {
+  const { sendJsonMessage } = useWebSocket(`${URL}/${room_id}/${uuid}`, {
     onMessage: (event) => {
       onMessageHandler(event.data)
     },
     onError: () => setError(true),
   })
 
-  return error
+  return { error, sendJsonMessage }
 }
 
 export default useWebSocketRoom

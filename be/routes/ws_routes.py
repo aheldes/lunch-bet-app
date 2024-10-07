@@ -1,13 +1,11 @@
 import asyncio
-import json
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from dependencies import create_user, log_action_to_redis
-from dependencies.enums import RoomEventTypes
+from dependencies import create_user
 
 from websocket import socket_manager
-from websocket.helpers import RoomEventMessageGenerator
+from websocket.helpers import RoomEventHandler
 
 router = APIRouter()
 
@@ -30,53 +28,12 @@ async def websocket_rooms(websocket: WebSocket, user_id: str):
 @router.websocket("/ws/room/{room_id}/{user_id}")
 async def websocket_room(websocket: WebSocket, room_id: str, user_id: str):
     """Websocket that servers actions in a room."""
-    channel = f"room:{room_id}"
-    await socket_manager.create_channel(channel, websocket)
-
-    await create_user(user_id)
-
-    message = RoomEventMessageGenerator.generate_join_message(user_id)
-
-    await socket_manager.broadcast(
-        channel,
-        json.dumps(
-            {
-                "type": RoomEventTypes.JOIN.value,
-                "user_id": user_id,
-                "message": message,
-            }
-        ),
-    )
-
-    await log_action_to_redis(
-        room_id=room_id,
-        user_id=user_id,
-        message=message,
-        action_type=RoomEventTypes.JOIN,
-    )
+    handler = RoomEventHandler(websocket, room_id, user_id)
+    await handler.handle_user_join_room()
 
     try:
         while True:
-            _ = await websocket.receive_text()
+            data = await websocket.receive_text()
+            await handler.handle_event(data)
     except WebSocketDisconnect:
-        await socket_manager.remove_user(channel, websocket)
-
-        message = RoomEventMessageGenerator.generate_leave_message(user_id)
-
-        await socket_manager.broadcast(
-            channel,
-            json.dumps(
-                {
-                    "type": RoomEventTypes.LEAVE.value,
-                    "user_id": user_id,
-                    "message": message,
-                }
-            ),
-        )
-
-        await log_action_to_redis(
-            room_id=room_id,
-            user_id=user_id,
-            message=message,
-            action_type=RoomEventTypes.LEAVE,
-        )
+        await handler.handle_user_leave_room()

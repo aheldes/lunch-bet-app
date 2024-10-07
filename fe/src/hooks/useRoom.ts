@@ -16,6 +16,7 @@ type RoomEventMessage = {
 const useRoom = (room_id: string) => {
   const [users, setUsers] = useState<string[]>([])
   const [eventHistory, setEventHistory] = useState<Event[]>([])
+  const [gameStarted, setGameStarted] = useState<boolean>(false)
   const { data, isLoading, isError } = useQuery<Action[]>({
     queryKey: ['room', room_id],
     queryFn: () => fetchActions(room_id),
@@ -59,6 +60,19 @@ const useRoom = (room_id: string) => {
         })
         break
 
+      case RoomEventTypes.GAME_START:
+        setGameStarted(true)
+        toast('Game started', {
+          description: data.message,
+        })
+        break
+      case RoomEventTypes.GAME_END:
+        setGameStarted(false)
+        toast('Game ended', {
+          description: data.message,
+        })
+        break
+
       default:
         console.error('Unknown message type:', data)
     }
@@ -87,7 +101,7 @@ const useRoom = (room_id: string) => {
     }
   }, [data])
 
-  return { eventHistory, users, messageHandler }
+  return { eventHistory, users, messageHandler, gameStarted }
 }
 
 export default useRoom
