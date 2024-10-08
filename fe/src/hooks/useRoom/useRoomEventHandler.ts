@@ -1,12 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { fetchActions, fetchHistory } from '@/api/api'
-
 import { toast } from 'sonner'
-
-import type { Action, Currency, Event, GameHistory, Price } from '@/types'
-import { GameState, RoomEventTypes } from '@/types'
-import useUUIDContext from './useUUIDContext'
+import { Currency, Event, GameState, Price, RoomEventTypes } from '@/types'
 
 type RoomEventMessage = {
   type: RoomEventTypes
@@ -16,47 +9,18 @@ type RoomEventMessage = {
   currency?: Currency
 }
 
-const useRoom = (room_id: string) => {
-  const { uuid } = useUUIDContext()
-  const [users, setUsers] = useState<string[]>([])
-  const [eventHistory, setEventHistory] = useState<Event[]>([])
-  const [gameState, setGameState] = useState<GameState>(GameState.IDLE)
-  const [priceSet, setPriceSet] = useState<boolean>(false)
-  const [betSet, setBetSet] = useState<boolean>(false)
-  const [prices, setPrices] = useState<Price[]>([])
-  const [bets, setBets] = useState<string[]>([])
-  const [result, setResult] = useState<string | null>(null)
-
-  const { data, isLoading, isError } = useQuery<Action[]>({
-    queryKey: ['room', room_id],
-    queryFn: () => fetchActions(room_id),
-    staleTime: 5000,
-  })
-
-  const {
-    data: historyData,
-    isLoading: historyIsLoading,
-    isError: historyIsError,
-    refetch: historyRefetch,
-  } = useQuery<GameHistory[]>({
-    queryKey: ['room_history', room_id],
-    queryFn: () => fetchHistory(room_id),
-    staleTime: 5000,
-  })
-
-  const resetGame = () => {
-    setGameState(GameState.IDLE)
-    setBetSet(false)
-    setPriceSet(false)
-    setEventHistory([])
-    setBets([])
-    setPrices([])
-  }
-
-  const clearResult = () => {
-    setResult('')
-  }
-
+const useRoomEventHandler = (
+  eventHistory: Event[],
+  setBets: React.Dispatch<React.SetStateAction<string[]>>,
+  setBetSet: React.Dispatch<React.SetStateAction<boolean>>,
+  setEventHistory: React.Dispatch<React.SetStateAction<Event[]>>,
+  setGameState: React.Dispatch<React.SetStateAction<GameState>>,
+  setUsers: React.Dispatch<React.SetStateAction<string[]>>,
+  setPrices: React.Dispatch<React.SetStateAction<Price[]>>,
+  setPriceSet: React.Dispatch<React.SetStateAction<boolean>>,
+  handleResult: (message: string) => void,
+  uuid: string | null
+) => {
   const handleMessage = (data: RoomEventMessage, timestamp?: Date) => {
     // This check is needed as sometimes happened that WS connection got established before the data was fetched
     // and logged new event into redis and then rest fetched events including this one.
@@ -136,64 +100,14 @@ const useRoom = (room_id: string) => {
         setBets((prevBets) => [...[data.user_id], ...prevBets])
         break
       case RoomEventTypes.RESULT:
-        resetGame()
-        setResult(data.message)
-        historyRefetch()
+        handleResult(data.message)
         break
       default:
         console.error('Unknown message type:', data)
     }
   }
 
-  const messageHandler = (message: string) => {
-    try {
-      const data: RoomEventMessage = JSON.parse(message)
-      handleMessage(data)
-    } catch (error) {
-      console.error('Failed to parse message:', error)
-    }
-  }
-
-  useEffect(() => {
-    if (data) {
-      data.forEach((action) => {
-        const parsedAction: RoomEventMessage = {
-          type: action.action as RoomEventTypes,
-          user_id: action.user_id,
-          message: action.message,
-          price: action.price,
-          currency: action.currency,
-        }
-
-        handleMessage(parsedAction, new Date(action.timestamp))
-      })
-    }
-  }, [data])
-
-  useEffect(() => {
-    if (users.length === prices.length && users.length > 1) {
-      setGameState(GameState.PRICES_SET)
-    }
-  }, [users, prices])
-
-  useEffect(() => {
-    if (users.length === bets.length && users.length > 1) {
-      setGameState(GameState.BETS_SET)
-    }
-  }, [users, bets])
-
-  return {
-    eventHistory,
-    users,
-    messageHandler,
-    gameState,
-    priceSet,
-    prices,
-    betSet,
-    result,
-    clearResult,
-    historyData,
-  }
+  return handleMessage
 }
 
-export default useRoom
+export default useRoomEventHandler
