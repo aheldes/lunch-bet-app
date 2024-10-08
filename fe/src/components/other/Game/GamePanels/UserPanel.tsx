@@ -18,7 +18,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ className }) => {
   return (
     <Card className={`flex flex-col items-center ${className}`}>
       <CardHeader>Active users</CardHeader>
-      <CardContent className="overflow-y-auto max-h-[50vh]">
+      <CardContent className="overflow-y-auto">
         {users.map((uuid) => (
           <div key={uuid} className="mb-2">
             <TooltipProvider>

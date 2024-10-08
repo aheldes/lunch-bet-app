@@ -8,7 +8,7 @@ type EventPanelProps = {
 const EventPanel: React.FC<EventPanelProps> = ({ className }) => {
   const { eventHistory } = useRoomContext()
   return (
-    <Card className={`flex flex-col items-center ${className}`}>
+    <Card className={`flex flex-col ${className}`}>
       <CardHeader>Event log</CardHeader>
       <CardContent className="overflow-y-auto max-h-[50vh]">
         {eventHistory.map((event, index) => (

@@ -1,3 +1,4 @@
-export { default as Game } from './Game'
-export { default as GameHistoryTables } from './GameHistoryTables'
-export { default as GameStartButton } from './GameStartButton'
+export { Game } from './GameStateLogic'
+export { GamePanels } from './GamePanels'
+export { GameHistoryTables } from './GameHistory'
+export { default as ResultDialog } from './ResultDialog'

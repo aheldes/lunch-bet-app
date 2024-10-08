@@ -1,10 +1,10 @@
 import useRoomContext from '@/hooks/useRoomContext'
 
-import PriceDialog from './GameStateLogic/PriceDialog'
-import GameStateTitle from './GameStateLogic/GameStateTitle'
-import GameStartButton from './GameStateLogic/GameStartButton'
-import GameEvaluateButton from './GameStateLogic/GameEvaluateButton'
-import BetDialog from './GameStateLogic/BetDialog'
+import PriceDialog from './PriceDialog'
+import GameStateTitle from './GameStateTitle'
+import GameStartButton from './GameStartButton'
+import GameEvaluateButton from './GameEvaluateButton'
+import BetDialog from './BetDialog'
 import { GameState } from '@/types'
 
 const Game: React.FC = () => {

@@ -13,7 +13,7 @@ const Home: React.FC = () => {
           <Body />
         </RoomProvider>
       ) : (
-        'error'
+        'Unexpected error'
       )}
     </main>
   )
