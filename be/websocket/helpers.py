@@ -108,6 +108,14 @@ class RoomEventHandler:
                 message = RoomEventMessageGenerator.generate_result_message(
                     looser.user_id, total_in_czk
                 )
+
+                await Game.create_game_with_prices(
+                    room_id=self.room_id,
+                    loser_id=looser.user_id,
+                    converted_prices=converted_prices,
+                    total_in_czk=total_in_czk,
+                )
+
                 await socket_manager.broadcast(
                     self.channel,
                     json.dumps(
@@ -119,13 +127,6 @@ class RoomEventHandler:
                     ),
                 )
                 await remove_actions_from_redis(self.room_id)
-
-                await Game.create_game_with_prices(
-                    room_id=self.room_id,
-                    loser_id=looser.user_id,
-                    converted_prices=converted_prices,
-                    total_in_czk=total_in_czk,
-                )
                 return
             case _:
                 raise NotImplementedError(
