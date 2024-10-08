@@ -18,7 +18,9 @@ class RedisPubSubManager:
 
     async def connect(self) -> None:
         """Connect and initialize Redis Pub/Sub."""
+        logger.info("Connecting to Redis")
         self.redis_connection = redis.Redis(host=self.redis_host, port=self.redis_port)
+        logger.info("Initializing Pub/Sub")
         self.pubsub = self.redis_connection.pubsub()
 
     async def publish(self, channel: str, message: str) -> None:
@@ -46,12 +48,15 @@ class WebSocketManager:
 
     async def create_channel(self, channel: str, websocket: WebSocket) -> None:
         """Creates a connection for a channel."""
+        logger.info("Connecting to channel: %s", channel)
         await websocket.accept()
 
         if channel in self.channels:
+            logger.info("Channel already exists. Appending too existing one")
             self.channels[channel].append(websocket)
             return
 
+        logger.info("Channel does not exists. Creating new one.")
         self.channels[channel] = [websocket]
         await self.pubsub_client.connect()
         await self.pubsub_client.subscribe(channel)

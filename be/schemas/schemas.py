@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
-from models.models import Game, GamePrice
+from database.models import Game, GamePrice
 from dependencies.enums import Currency
 
 # pylint: disable=missing-class-docstring, too-few-public-methods

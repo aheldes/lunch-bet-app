@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
-from models import Room, RoomUser
+from database.models import Room, RoomUser
 from schemas import GameResponse, RoomResponse, RoomUserResponse
 from dependencies.dependencies import (
     approve_user,
