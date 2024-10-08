@@ -42,7 +42,7 @@ async def get_game_history(
     if not games:
         return []
 
-    return [GameResponse.from_orm(game) for game in games]
+    return [GameResponse.from_game_obj(game) for game in games]
 
 
 async def create_user(user_id: str):
