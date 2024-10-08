@@ -1,8 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
 import useUUIDContext from '@/hooks/useUUIDContext'
 import useFetchRoomData from './useFetchRoomData'
 import useGameState from './useGameState'
 import useRoomEventHandler from './useRoomEventHandler'
+
+import type { RoomEventMessage } from './useRoomEventHandler'
+import { RoomEventTypes } from '@/types'
 
 const useRoom = (room_id: string) => {
   const { uuid } = useUUIDContext()
@@ -64,6 +68,21 @@ const useRoom = (room_id: string) => {
       console.error('Failed to parse message:', error)
     }
   }
+
+  useEffect(() => {
+    if (actionsData) {
+      actionsData.forEach((action) => {
+        const parsedAction: RoomEventMessage = {
+          type: action.action as RoomEventTypes,
+          user_id: action.user_id,
+          message: action.message,
+          price: action.price,
+          currency: action.currency,
+        }
+        handleMessage(parsedAction, new Date(action.timestamp))
+      })
+    }
+  }, [actionsData])
 
   return {
     eventHistory,

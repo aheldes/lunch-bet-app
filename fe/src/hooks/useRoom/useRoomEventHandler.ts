@@ -1,7 +1,7 @@
 import { toast } from 'sonner'
 import { Currency, Event, GameState, Price, RoomEventTypes } from '@/types'
 
-type RoomEventMessage = {
+export type RoomEventMessage = {
   type: RoomEventTypes
   user_id: string
   message: string
