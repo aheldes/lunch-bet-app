@@ -98,7 +98,7 @@ const BetDialog: React.FC = () => {
                     </FormItem>
                   )}
                 />
-                <DialogFooter className="sm:justify-end">
+                <DialogFooter className="sm:justify-end mt-2">
                   <Button type="submit" variant="secondary">
                     Submit
                   </Button>
