@@ -1,5 +1,3 @@
-import asyncio
-
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from dependencies.dependencies import create_user
@@ -20,7 +18,7 @@ async def websocket_rooms(websocket: WebSocket, user_id: str):
 
     try:
         while True:
-            await asyncio.sleep(1)
+            _ = await websocket.receive_text()
     except WebSocketDisconnect:
         await socket_manager.remove_user(channel, websocket)
 
