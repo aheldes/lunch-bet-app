@@ -34,7 +34,7 @@ const Game: React.FC = () => {
       content = <div>Error: Unknown game state.</div>
   }
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 ml-2">
       <GameStateTitle title={title} />
       {content}
     </div>

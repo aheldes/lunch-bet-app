@@ -10,14 +10,14 @@ import {
 const Body: React.FC = () => {
   return (
     <>
-      <div className="grid grid-rows-12 gap-3 h-full">
+      <div className="grid grid-rows-12 gap-3">
         <Game />
 
         <div className="grid grid-cols-8 gap-2 px-3 row-span-8">
           <GamePanels />
         </div>
 
-        <div className="row-span-5">
+        <div className="row-span-3">
           <GameHistoryTables />
         </div>
       </div>
