@@ -2,7 +2,7 @@
 
 import EventPanel from '@/components/other/EventPanel'
 import UserPanel from '@/components/other/UserPanel'
-import { Game } from '@/components/other/Game'
+import { Game, GameHistoryTables } from '@/components/other/Game'
 
 const Body: React.FC = () => {
   return (
@@ -15,7 +15,7 @@ const Body: React.FC = () => {
         <EventPanel className="col-span-4" />
         <UserPanel />
       </div>
-      <div className="h-1/3">History placeholder</div>
+      <GameHistoryTables />
     </div>
   )
 }

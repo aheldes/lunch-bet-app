@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react'
 import useRoom from '@/hooks/useRoom'
 import useWebSocketRooms from '@/hooks/useWSRoom'
-import { GameState, Price, Event } from '@/types'
+import { GameState, Price, Event, GameHistory } from '@/types'
 
 export type RoomContextType = {
   room_id: string
@@ -15,6 +15,7 @@ export type RoomContextType = {
   sendJsonMessage: (message: any) => void
   result: string | null
   clearResult: () => void
+  historyData?: GameHistory[]
 }
 
 export const RoomContext = createContext<RoomContextType | undefined>(undefined)
@@ -33,6 +34,7 @@ export const RoomProvider: React.FC<{
     betSet,
     result,
     clearResult,
+    historyData,
   } = useRoom(room_id)
   const { sendJsonMessage } = useWebSocketRooms(room_id, messageHandler)
 
@@ -48,6 +50,7 @@ export const RoomProvider: React.FC<{
     sendJsonMessage,
     result,
     clearResult,
+    historyData,
   }
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>

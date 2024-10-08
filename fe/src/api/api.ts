@@ -1,9 +1,15 @@
 import axios, { AxiosResponse } from 'axios'
 
-import parseActionData from '@/utils/parseActionData'
-import parseRoomData from '@/utils/parseRoomData'
+import { parseActionData, parseHistoryData, parseRoomData } from '@/utils'
 
-import type { Action, ActionResponse, Room, RoomResponse } from '@/types'
+import type {
+  Action,
+  ActionResponse,
+  GameHistory,
+  GameHistoryResponse,
+  Room,
+  RoomResponse,
+} from '@/types'
 
 // Manually set as cannot inject via environment variables in docker-compose
 export const API_URL = 'http://localhost:8000'
@@ -25,6 +31,18 @@ export const fetchActions = async (room_id: string): Promise<Action[]> => {
     )
     const rawTasks = response.data
     return parseActionData(rawTasks)
+  } catch (error) {
+    throw error
+  }
+}
+
+export const fetchHistory = async (room_id: string): Promise<GameHistory[]> => {
+  try {
+    const response = await axios.get<GameHistoryResponse[]>(
+      `${API_URL}/rooms/${room_id}/history`
+    )
+    const rawTasks = response.data
+    return parseHistoryData(rawTasks)
   } catch (error) {
     throw error
   }

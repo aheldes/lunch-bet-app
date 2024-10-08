@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { fetchActions } from '@/api/api'
+import { fetchActions, fetchHistory } from '@/api/api'
 
 import { toast } from 'sonner'
 
-import type { Action, Currency, Event, Price } from '@/types'
+import type { Action, Currency, Event, GameHistory, Price } from '@/types'
 import { GameState, RoomEventTypes } from '@/types'
 import useUUIDContext from './useUUIDContext'
 
@@ -30,6 +30,17 @@ const useRoom = (room_id: string) => {
   const { data, isLoading, isError } = useQuery<Action[]>({
     queryKey: ['room', room_id],
     queryFn: () => fetchActions(room_id),
+    staleTime: 5000,
+  })
+
+  const {
+    data: historyData,
+    isLoading: historyIsLoading,
+    isError: historyIsError,
+    refetch: historyRefetch,
+  } = useQuery<GameHistory[]>({
+    queryKey: ['room_history', room_id],
+    queryFn: () => fetchHistory(room_id),
     staleTime: 5000,
   })
 
@@ -127,6 +138,7 @@ const useRoom = (room_id: string) => {
       case RoomEventTypes.RESULT:
         resetGame()
         setResult(data.message)
+        historyRefetch()
         break
       default:
         console.error('Unknown message type:', data)
@@ -180,6 +192,7 @@ const useRoom = (room_id: string) => {
     betSet,
     result,
     clearResult,
+    historyData,
   }
 }
 
